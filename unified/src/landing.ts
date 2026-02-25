@@ -36,6 +36,7 @@ export function createLandingPage(root: HTMLElement, options: LandingPageOptions
       <div class="landing-controls">
         <p>ARROWS / WASD to move &nbsp; SPACE to fire &nbsp; SHIFT hyperspace</p>
         <p>P pause &nbsp; F fullscreen &nbsp; M mute &nbsp; ESC menu</p>
+        <p>By David Bachman with GPT 5.3 codex</p>
       </div>
     </div>
   `;
