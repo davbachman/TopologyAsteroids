@@ -1,0 +1,261 @@
+:root {
+  color-scheme: dark;
+  --bg: #050505;
+  --text: #f5f5f5;
+  --dim: #888;
+  --panel: #0c1222;
+  --panel-top: #162745;
+  --line: #35507d;
+  --accent-cool: #93c8ff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Courier New", monospace;
+  background: radial-gradient(circle at 50% 40%, #111 0%, #070707 50%, #020202 100%);
+  color: var(--text);
+}
+
+/* ── Landing Page ── */
+
+.landing {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-content {
+  text-align: center;
+  max-width: 600px;
+  padding: 20px;
+}
+
+.landing-title {
+  font-size: 42px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.landing-subtitle {
+  font-size: 14px;
+  color: var(--dim);
+  margin-bottom: 40px;
+  letter-spacing: 0.1em;
+}
+
+.landing-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.landing-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: var(--text);
+  font-family: "Courier New", monospace;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.landing-option:hover,
+.landing-option:focus {
+  border-color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+  outline: none;
+}
+
+.option-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dim);
+  min-width: 30px;
+}
+
+.landing-option:hover .option-number {
+  color: var(--text);
+}
+
+.option-text {
+  line-height: 1.4;
+}
+
+.option-detail {
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.landing-controls {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.8;
+}
+
+/* ── Menu Button ── */
+
+.menu-btn {
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #aaa;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.menu-btn:hover,
+.menu-btn:focus {
+  color: var(--text);
+  border-color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+/* ── Single Canvas Game Layout (octagon, annulus) ── */
+
+.game-shell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-shell .menu-btn {
+  align-self: flex-start;
+  margin: 8px 12px 0;
+  flex-shrink: 0;
+}
+
+.game-shell canvas {
+  background: #000;
+  border: 1px solid #2b2b2b;
+  box-shadow: 0 0 0 1px #0f0f0f inset, 0 0 40px rgba(255, 255, 255, 0.05);
+  max-width: 94vw;
+  max-height: calc(100vh - 48px);
+  width: auto;
+  height: auto;
+  flex-shrink: 1;
+  min-height: 0;
+  display: block;
+}
+
+/* ── Split Layout (torus rectangle mode) ── */
+
+.split-shell {
+  height: 100%;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.split-shell .menu-btn {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 100;
+}
+
+.split-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 0.56fr 1.44fr;
+  gap: 12px;
+}
+
+.pane {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(20, 30, 52, 0.9), rgba(11, 16, 31, 0.95));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 34px rgba(0, 0, 0, 0.35);
+}
+
+.pane-header {
+  padding: 11px 15px;
+  font-size: 0.79rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-cool);
+  border-bottom: 1px solid rgba(116, 157, 214, 0.44);
+  background: linear-gradient(90deg, rgba(26, 50, 88, 0.76), rgba(14, 24, 47, 0.78));
+}
+
+.pane-body {
+  min-height: 0;
+  position: relative;
+  padding: 8px;
+}
+
+.torus-host {
+  width: 100%;
+  height: 100%;
+  background: #f3eee2;
+  border-radius: 12px;
+}
+
+.torus-host canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 12px;
+  background: transparent;
+}
+
+#game-pane .pane-body canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 12px;
+  border: 1px solid rgba(84, 118, 173, 0.52);
+  background: #04060e;
+}
+
+#torus-pane .pane-body {
+  background: #f3eee2;
+}
+
+.torus-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(84, 118, 173, 0.52);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 16px;
+  color: #4e5a70;
+  background: #f3eee2;
+}

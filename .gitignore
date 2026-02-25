@@ -1,0 +1,19 @@
+.DS_Store
+*.log
+
+.claude/
+
+**/node_modules/
+**/dist/
+**/output/
+**/test-results/
+**/playwright-report/
+**/.cache/
+**/coverage/
+
+**/tsconfig.tsbuildinfo
+
+# Local editor/tool files
+.vscode/
+.idea/
+

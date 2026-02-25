@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;700&display=swap');
+
+:root {
+  --bg-deep: #060914;
+  --bg-aurora: #122544;
+  --panel: #0c1222;
+  --panel-top: #162745;
+  --line: #35507d;
+  --text: #edf3ff;
+  --accent: #ffb971;
+  --accent-cool: #93c8ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: 'Chakra Petch', 'Avenir Next', sans-serif;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(147, 200, 255, 0.18), transparent 48%),
+    radial-gradient(circle at 80% 86%, rgba(255, 185, 113, 0.12), transparent 52%),
+    linear-gradient(160deg, var(--bg-deep), #090f1e 46%, var(--bg-aurora));
+  color: var(--text);
+  overflow: hidden;
+}
+
+.shell {
+  height: 100%;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.split-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 0.56fr 1.44fr;
+  gap: 12px;
+}
+
+.pane {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(20, 30, 52, 0.9), rgba(11, 16, 31, 0.95));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 34px rgba(0, 0, 0, 0.35);
+}
+
+.pane-header {
+  padding: 11px 15px;
+  font-size: 0.79rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-cool);
+  border-bottom: 1px solid rgba(116, 157, 214, 0.44);
+  background:
+    linear-gradient(90deg, rgba(26, 50, 88, 0.76), rgba(14, 24, 47, 0.78));
+}
+
+.pane-body {
+  min-height: 0;
+  position: relative;
+  padding: 8px;
+}
+
+#game-canvas,
+.torus-host canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 12px;
+  border: 1px solid rgba(84, 118, 173, 0.52);
+}
+
+#game-canvas {
+  background: #04060e;
+}
+
+#torus-pane .pane-body {
+  background: #f3eee2;
+}
+
+.torus-host {
+  width: 100%;
+  height: 100%;
+  background: #f3eee2;
+  border-radius: 12px;
+}
+
+.torus-host canvas {
+  background: transparent;
+}
+
+.torus-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(84, 118, 173, 0.52);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 16px;
+  color: #4e5a70;
+  background: #f3eee2;
+}
+
+.unsupported-banner {
+  display: none;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 185, 113, 0.52);
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255, 185, 113, 0.13), transparent 52%),
+    linear-gradient(180deg, rgba(32, 18, 11, 0.86), rgba(13, 15, 24, 0.95));
+  text-align: center;
+  padding: 18px;
+}
+
+.unsupported-banner h1 {
+  margin: 0;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.unsupported-banner p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.shell.is-unsupported .split-layout {
+  display: none;
+}
+
+.shell.is-unsupported .unsupported-banner {
+  display: flex;
+}

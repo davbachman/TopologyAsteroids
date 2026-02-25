@@ -1,0 +1,47 @@
+:root {
+  color-scheme: dark;
+  font-family: "Courier New", Courier, monospace;
+  background: #050505;
+  color: #f5f5f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 40%, #111 0%, #070707 50%, #020202 100%);
+}
+
+body {
+  display: grid;
+  place-items: center;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+.game-shell {
+  width: min(94vw, 94vh);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+  border: 1px solid #2b2b2b;
+  box-shadow: 0 0 0 1px #0f0f0f inset, 0 0 40px rgba(255, 255, 255, 0.05);
+}
