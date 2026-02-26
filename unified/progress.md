@@ -36,3 +36,4 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Added `projective` topology mode (Projective Plane Universe): a single-disk playfield with antipodal boundary identification and corresponding velocity/heading transforms.
 - Added boundary decorations for the projective disk: left/right dots, top single right-pointing arrow, bottom single left-pointing arrow.
 - Added landing page option `7`, `?mode=projective` (plus aliases), and topology tests; validated with `unified` tests/build and projective-mode visual screenshots.
+- Fixed projective-plane seam transport: wrapped velocity/heading now reflect across the boundary radius (using the pre-wrap radial direction) instead of rotating by pi, so objects re-enter the disk after antipodal transport.

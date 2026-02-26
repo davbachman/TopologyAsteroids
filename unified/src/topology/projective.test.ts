@@ -18,18 +18,18 @@ describe('projective topology', () => {
     expect(p.y).toBeCloseTo(0, 6);
   });
 
-  it('negates velocity on an antipodal seam wrap', () => {
+  it('reflects velocity across the boundary radius so motion re-enters', () => {
     const v = { x: 2, y: -5 };
-    topo.transformWrappedVelocityInPlace?.(v, { x: 430, y: 10 }, { x: -410, y: -10 });
-    expect(v.x).toBeCloseTo(-2, 6);
+    topo.transformWrappedVelocityInPlace?.(v, { x: 430, y: 0 }, { x: -410, y: 0 });
+    // Right-edge crossing maps to left-edge re-entry: radial component preserved, tangential flipped.
+    expect(v.x).toBeCloseTo(2, 6);
     expect(v.y).toBeCloseTo(5, 6);
   });
 
-  it('rotates heading by pi on an antipodal seam wrap', () => {
+  it('reflects heading across the boundary radius on an antipodal seam wrap', () => {
     const angle = Math.PI / 4;
     const wrapped = topo.transformWrappedAngle?.(angle, { x: 430, y: 0 }, { x: -410, y: 0 });
-    expect(Math.cos(wrapped ?? 0)).toBeCloseTo(-Math.cos(angle), 6);
-    expect(Math.sin(wrapped ?? 0)).toBeCloseTo(-Math.sin(angle), 6);
+    expect(wrapped).toBeCloseTo(-Math.PI / 4, 6);
   });
 
   it('produces an antipodal ghost offset near the boundary', () => {
@@ -39,4 +39,3 @@ describe('projective topology', () => {
     expect(hasGhost).toBe(true);
   });
 });
-

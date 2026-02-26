@@ -9,6 +9,12 @@ interface ProjectiveWrapMeta extends WrapResult {
   twistParity: 0 | 1;
 }
 
+function reflectAcrossRadialInPlace(v: Vec2, radialUnit: Vec2): void {
+  const d = v.x * radialUnit.x + v.y * radialUnit.y;
+  v.x = 2 * d * radialUnit.x - v.x;
+  v.y = 2 * d * radialUnit.y - v.y;
+}
+
 /**
  * Real projective plane modeled as a disk with antipodal boundary points identified.
  * Crossing the boundary re-enters near the diametrically opposite boundary point.
@@ -60,13 +66,18 @@ export function createProjectiveTopology(): Topology {
 
   function transformWrappedVelocityInPlace(vel: Vec2, beforeWrapPos: Vec2): void {
     if (!twistParityFromBeforeWrap(beforeWrapPos)) return;
-    vel.x = -vel.x;
-    vel.y = -vel.y;
+    const r = Math.hypot(beforeWrapPos.x, beforeWrapPos.y);
+    if (r <= 1e-9) return;
+    reflectAcrossRadialInPlace(vel, { x: beforeWrapPos.x / r, y: beforeWrapPos.y / r });
   }
 
   function transformWrappedAngle(angle: number, beforeWrapPos: Vec2): number {
     if (!twistParityFromBeforeWrap(beforeWrapPos)) return angle;
-    return Math.atan2(-Math.sin(angle), -Math.cos(angle));
+    const r = Math.hypot(beforeWrapPos.x, beforeWrapPos.y);
+    if (r <= 1e-9) return angle;
+    const heading = { x: Math.cos(angle), y: Math.sin(angle) };
+    reflectAcrossRadialInPlace(heading, { x: beforeWrapPos.x / r, y: beforeWrapPos.y / r });
+    return Math.atan2(heading.y, heading.x);
   }
 
   function containsPoint(point: Vec2, margin = 0): boolean {
