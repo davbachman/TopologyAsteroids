@@ -27,3 +27,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Added seam identification markers to annulus, octagon, sphere, and handle topologies (boundary arrows/chevrons indicating paired boundaries and orientation).
 - Added shared boundary marker helpers in `unified/src/topology/boundaryMarks.ts` to keep topology boundary annotations consistent.
 - Validation: `unified` tests/build pass; Playwright visual checks completed for `annulus`, `octagon`, `sphere`, and `handle` modes with markers visible and HUD-safe.
+- Updated handle topology to support an inset rectangular playfield (frameInset option) so the wrapped area can be shrunk like rectangle mode while retaining the same canvas size.
+- Handle mode now renders a bounding rectangle and boundary markers with distinct counts: single on left/right edges, double on top/bottom edges, and triple on the circular hole seams.
+- Wired `handle` mode launch in `main.ts` to use `frameInset: 40`; validated with tests/build and a handle-mode visual screenshot.

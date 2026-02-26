@@ -101,7 +101,7 @@ function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle'>)
       case 'sphere':
         return createSphereTopology();
       case 'handle':
-        return createHandleTopology();
+        return createHandleTopology({ frameInset: 40 });
     }
   })();
 

@@ -1,5 +1,5 @@
 import type { Vec2 } from '../core/types';
-import { drawCircleTangentMarker, drawDoubleChevron } from './boundaryMarks';
+import { drawChevron, drawDoubleChevron } from './boundaryMarks';
 import type { Topology, WrapResult } from './topology';
 
 const WORLD_WIDTH = 1024;
@@ -24,17 +24,6 @@ function reflectAcrossTangentInPlace(v: Vec2, normal: Vec2): void {
   v.y -= 2 * d * normal.y;
 }
 
-function wrapEdgesCentered(point: Vec2): WrapResult {
-  const ox = point.x;
-  const oy = point.y;
-  point.x = wrapAxis(point.x + HALF_W, WORLD_WIDTH) - HALF_W;
-  point.y = wrapAxis(point.y + HALF_H, WORLD_HEIGHT) - HALF_H;
-  return {
-    offset: { x: point.x - ox, y: point.y - oy },
-    passes: (ox !== point.x || oy !== point.y) ? 1 : 0,
-  };
-}
-
 function holeIndexContainingPoint(point: Vec2, margin = 0): 0 | 1 | null {
   const limit = Math.max(0, HOLE_RADIUS - margin);
   for (let i = 0; i < HOLES.length; i += 1) {
@@ -44,10 +33,6 @@ function holeIndexContainingPoint(point: Vec2, margin = 0): 0 | 1 | null {
     if (dx * dx + dy * dy < limit * limit) return i as 0 | 1;
   }
   return null;
-}
-
-function mirrorAcrossCenterline(p: Vec2): Vec2 {
-  return { x: -p.x, y: p.y };
 }
 
 function wrapThroughHoleInPlace(point: Vec2): boolean {
@@ -73,19 +58,6 @@ function wrapThroughHoleInPlace(point: Vec2): boolean {
   return true;
 }
 
-function seamNormalFromBeforeWrap(beforeWrapPos: Vec2): Vec2 | null {
-  const p = { x: beforeWrapPos.x, y: beforeWrapPos.y };
-  wrapEdgesCentered(p);
-  const holeIndex = holeIndexContainingPoint(p);
-  if (holeIndex === null) return null;
-  const c = HOLES[holeIndex];
-  const dx = p.x - c.x;
-  const dy = p.y - c.y;
-  const r = Math.hypot(dx, dy);
-  if (r <= 1e-9) return null;
-  return { x: dx / r, y: dy / r };
-}
-
 function transformHoleWrapVectorInPlace(v: Vec2, sourceNormal: Vec2): void {
   // First apply the specified global reflection across the center vertical line.
   v.x = -v.x;
@@ -94,7 +66,41 @@ function transformHoleWrapVectorInPlace(v: Vec2, sourceNormal: Vec2): void {
   reflectAcrossTangentInPlace(v, targetNormal);
 }
 
-export function createHandleTopology(): Topology {
+export interface HandleTopologyOptions {
+  frameInset?: number;
+}
+
+export function createHandleTopology(options: HandleTopologyOptions = {}): Topology {
+  const inset = Math.max(0, Math.floor(options.frameInset ?? 0));
+  const playWidth = Math.max(64, WORLD_WIDTH - inset * 2);
+  const playHeight = Math.max(64, WORLD_HEIGHT - inset * 2);
+  const playHalfW = playWidth / 2;
+  const playHalfH = playHeight / 2;
+
+  function wrapEdgesCentered(point: Vec2): WrapResult {
+    const ox = point.x;
+    const oy = point.y;
+    point.x = wrapAxis(point.x + playHalfW, playWidth) - playHalfW;
+    point.y = wrapAxis(point.y + playHalfH, playHeight) - playHalfH;
+    return {
+      offset: { x: point.x - ox, y: point.y - oy },
+      passes: (ox !== point.x || oy !== point.y) ? 1 : 0,
+    };
+  }
+
+  function seamNormalFromBeforeWrap(beforeWrapPos: Vec2): Vec2 | null {
+    const p = { x: beforeWrapPos.x, y: beforeWrapPos.y };
+    wrapEdgesCentered(p);
+    const holeIndex = holeIndexContainingPoint(p);
+    if (holeIndex === null) return null;
+    const c = HOLES[holeIndex];
+    const dx = p.x - c.x;
+    const dy = p.y - c.y;
+    const r = Math.hypot(dx, dy);
+    if (r <= 1e-9) return null;
+    return { x: dx / r, y: dy / r };
+  }
+
   function wrapInPlace(point: Vec2): WrapResult {
     const ox = point.x;
     const oy = point.y;
@@ -132,7 +138,7 @@ export function createHandleTopology(): Topology {
   }
 
   function containsPoint(point: Vec2, margin = 0): boolean {
-    if (Math.abs(point.x) > HALF_W - margin || Math.abs(point.y) > HALF_H - margin) return false;
+    if (Math.abs(point.x) > playHalfW - margin || Math.abs(point.y) > playHalfH - margin) return false;
     for (const c of HOLES) {
       const dx = point.x - c.x;
       const dy = point.y - c.y;
@@ -146,19 +152,19 @@ export function createHandleTopology(): Topology {
     const offsets: Vec2[] = [{ x: 0, y: 0 }];
 
     // Rectangle-torus edge ghosts.
-    const nearRight = HALF_W - point.x <= radius;
-    const nearLeft = point.x + HALF_W <= radius;
-    const nearBottom = HALF_H - point.y <= radius;
-    const nearTop = point.y + HALF_H <= radius;
+    const nearRight = playHalfW - point.x <= radius;
+    const nearLeft = point.x + playHalfW <= radius;
+    const nearBottom = playHalfH - point.y <= radius;
+    const nearTop = point.y + playHalfH <= radius;
 
-    if (nearRight) offsets.push({ x: -WORLD_WIDTH, y: 0 });
-    if (nearLeft) offsets.push({ x: WORLD_WIDTH, y: 0 });
-    if (nearBottom) offsets.push({ x: 0, y: -WORLD_HEIGHT });
-    if (nearTop) offsets.push({ x: 0, y: WORLD_HEIGHT });
-    if (nearRight && nearBottom) offsets.push({ x: -WORLD_WIDTH, y: -WORLD_HEIGHT });
-    if (nearRight && nearTop) offsets.push({ x: -WORLD_WIDTH, y: WORLD_HEIGHT });
-    if (nearLeft && nearBottom) offsets.push({ x: WORLD_WIDTH, y: -WORLD_HEIGHT });
-    if (nearLeft && nearTop) offsets.push({ x: WORLD_WIDTH, y: WORLD_HEIGHT });
+    if (nearRight) offsets.push({ x: -playWidth, y: 0 });
+    if (nearLeft) offsets.push({ x: playWidth, y: 0 });
+    if (nearBottom) offsets.push({ x: 0, y: -playHeight });
+    if (nearTop) offsets.push({ x: 0, y: playHeight });
+    if (nearRight && nearBottom) offsets.push({ x: -playWidth, y: -playHeight });
+    if (nearRight && nearTop) offsets.push({ x: -playWidth, y: playHeight });
+    if (nearLeft && nearBottom) offsets.push({ x: playWidth, y: -playHeight });
+    if (nearLeft && nearTop) offsets.push({ x: playWidth, y: playHeight });
 
     // Hole seam ghosts: map the center through the paired-hole seam if close enough.
     for (let i = 0; i < HOLES.length; i += 1) {
@@ -192,12 +198,12 @@ export function createHandleTopology(): Topology {
   function randomPointInBounds(margin = 0, rng = Math.random): Vec2 {
     for (let i = 0; i < 500; i += 1) {
       const p = {
-        x: (rng() * 2 - 1) * (HALF_W - margin),
-        y: (rng() * 2 - 1) * (HALF_H - margin),
+        x: (rng() * 2 - 1) * (playHalfW - margin),
+        y: (rng() * 2 - 1) * (playHalfH - margin),
       };
       if (containsPoint(p, margin)) return p;
     }
-    return { x: 0, y: HALF_H * 0.6 };
+    return { x: 0, y: playHalfH * 0.6 };
   }
 
   function pointOnRandomEdge(rng = Math.random): { point: Vec2; inward: Vec2 } {
@@ -205,19 +211,19 @@ export function createHandleTopology(): Topology {
     const t = rng() * 2 - 1;
     switch (edge) {
       case 0:
-        return { point: { x: HALF_W, y: t * HALF_H }, inward: { x: -1, y: 0 } };
+        return { point: { x: playHalfW, y: t * playHalfH }, inward: { x: -1, y: 0 } };
       case 1:
-        return { point: { x: -HALF_W, y: t * HALF_H }, inward: { x: 1, y: 0 } };
+        return { point: { x: -playHalfW, y: t * playHalfH }, inward: { x: 1, y: 0 } };
       case 2:
-        return { point: { x: t * HALF_W, y: HALF_H }, inward: { x: 0, y: -1 } };
+        return { point: { x: t * playHalfW, y: playHalfH }, inward: { x: 0, y: -1 } };
       default:
-        return { point: { x: t * HALF_W, y: -HALF_H }, inward: { x: 0, y: 1 } };
+        return { point: { x: t * playHalfW, y: -playHalfH }, inward: { x: 0, y: 1 } };
     }
   }
 
   function buildClipPath(ctx: CanvasRenderingContext2D): void {
     ctx.beginPath();
-    ctx.rect(-HALF_W, -HALF_H, WORLD_WIDTH, WORLD_HEIGHT);
+    ctx.rect(-playHalfW, -playHalfH, playWidth, playHeight);
     for (const c of HOLES) {
       ctx.moveTo(c.x + HOLE_RADIUS, c.y);
       ctx.arc(c.x, c.y, HOLE_RADIUS, 0, Math.PI * 2, true);
@@ -225,27 +231,45 @@ export function createHandleTopology(): Topology {
   }
 
   function drawBoundary(ctx: CanvasRenderingContext2D): void {
+    function drawTripleChevron(x: number, y: number, angle: number, size = 10, gap = 14): void {
+      const ux = Math.cos(angle);
+      const uy = Math.sin(angle);
+      drawChevron(ctx, x - ux * gap, y - uy * gap, angle, size);
+      drawChevron(ctx, x, y, angle, size);
+      drawChevron(ctx, x + ux * gap, y + uy * gap, angle, size);
+    }
+
+    function drawTripleCircleTangentMarker(center: Vec2, theta: number, tangentDirection: 1 | -1): void {
+      const x = center.x + Math.cos(theta) * HOLE_RADIUS;
+      const y = center.y + Math.sin(theta) * HOLE_RADIUS;
+      const angle = theta + (tangentDirection > 0 ? Math.PI / 2 : -Math.PI / 2);
+      drawTripleChevron(x, y, angle, 9.5, 12);
+    }
+
     ctx.save();
     ctx.strokeStyle = '#f5f5f5';
     ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.rect(-playHalfW, -playHalfH, playWidth, playHeight);
+    ctx.stroke();
     for (const c of HOLES) {
       ctx.beginPath();
       ctx.arc(c.x, c.y, HOLE_RADIUS, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Rectangle edge identifications (same as torus rectangle mode), shown without a border line.
     ctx.lineWidth = 1.5;
-    drawDoubleChevron(ctx, 0, -HALF_H + 14, 0, 10);
-    drawDoubleChevron(ctx, 0, HALF_H - 14, 0, 10);
-    drawDoubleChevron(ctx, -HALF_W + 14, 0, -Math.PI / 2, 10);
-    drawDoubleChevron(ctx, HALF_W - 14, 0, -Math.PI / 2, 10);
+    // Rectangle edge identifications: 1 arrow on left/right, 2 arrows on top/bottom.
+    drawChevron(ctx, -playHalfW, 0, -Math.PI / 2, 10);
+    drawChevron(ctx, playHalfW, 0, -Math.PI / 2, 10);
+    drawDoubleChevron(ctx, 0, -playHalfH, 0, 10, 16);
+    drawDoubleChevron(ctx, 0, playHalfH, 0, 10, 16);
 
     // Hole-pair identification: boundary points map by left-right reflection, so orientation reverses.
-    drawCircleTangentMarker(ctx, LEFT_HOLE_CENTER, HOLE_RADIUS, -Math.PI / 2, 1, 0, 10);
-    drawCircleTangentMarker(ctx, RIGHT_HOLE_CENTER, HOLE_RADIUS, -Math.PI / 2, -1, 0, 10);
-    drawCircleTangentMarker(ctx, LEFT_HOLE_CENTER, HOLE_RADIUS, Math.PI / 2, 1, 0, 10);
-    drawCircleTangentMarker(ctx, RIGHT_HOLE_CENTER, HOLE_RADIUS, Math.PI / 2, -1, 0, 10);
+    drawTripleCircleTangentMarker(LEFT_HOLE_CENTER, -Math.PI / 2, 1);
+    drawTripleCircleTangentMarker(RIGHT_HOLE_CENTER, -Math.PI / 2, -1);
+    drawTripleCircleTangentMarker(LEFT_HOLE_CENTER, Math.PI / 2, 1);
+    drawTripleCircleTangentMarker(RIGHT_HOLE_CENTER, Math.PI / 2, -1);
     ctx.restore();
   }
 
@@ -257,8 +281,8 @@ export function createHandleTopology(): Topology {
       const t = i * 13.37;
       const sx = (Math.sin(t * 12.9898) * 43758.5453) % 1;
       const sy = (Math.sin(t * 78.233) * 19341.123) % 1;
-      const px = ((sx < 0 ? sx + 1 : sx) * 2 - 1) * HALF_W;
-      const py = ((sy < 0 ? sy + 1 : sy) * 2 - 1) * HALF_H;
+      const px = ((sx < 0 ? sx + 1 : sx) * 2 - 1) * playHalfW;
+      const py = ((sy < 0 ? sy + 1 : sy) * 2 - 1) * playHalfH;
       const twinkle = 0.35 + 0.65 * Math.abs(Math.sin(time * (0.42 + (i % 7) * 0.08) + i));
       ctx.globalAlpha = twinkle * 0.28;
       ctx.fillRect(px, py, 1.5, 1.5);
@@ -280,7 +304,7 @@ export function createHandleTopology(): Topology {
     buildClipPath,
     drawBoundary,
     drawStars,
-    logicalSize: Math.max(WORLD_WIDTH, WORLD_HEIGHT),
+    logicalSize: Math.max(playWidth, playHeight),
     worldWidth: WORLD_WIDTH,
     worldHeight: WORLD_HEIGHT,
     centered: true,
