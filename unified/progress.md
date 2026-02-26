@@ -33,3 +33,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Added `klein` topology mode (Klein Bottle Universe) as a rectangular playfield with a twisted left/right seam: crossing left/right wraps with a 180-degree rotation in the rectangle coordinates (implemented as `y -> -y`).
 - Added kinematics transforms and ghost image generation for the twisted seam so bullets/ships preserve consistent motion and wrap rendering near the side seam.
 - Added landing page option `6`, `?mode=klein` direct launch, and topology tests; validated with `unified` tests/build and a visual `klein` screenshot showing the requested left/down and right/up side arrows.
+- Added `projective` topology mode (Projective Plane Universe): a single-disk playfield with antipodal boundary identification and corresponding velocity/heading transforms.
+- Added boundary decorations for the projective disk: left/right dots, top single right-pointing arrow, bottom single left-pointing arrow.
+- Added landing page option `7`, `?mode=projective` (plus aliases), and topology tests; validated with `unified` tests/build and projective-mode visual screenshots.

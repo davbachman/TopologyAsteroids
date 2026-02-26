@@ -36,6 +36,10 @@ export function createLandingPage(root: HTMLElement, options: LandingPageOptions
           <span class="option-number">6</span>
           <span class="option-text">Klein Bottle universe on a<br><span class="option-detail">twisted rectangle</span></span>
         </button>
+        <button class="landing-option" data-topology="projective">
+          <span class="option-number">7</span>
+          <span class="option-text">Projective Plane universe in a<br><span class="option-detail">disk with antipodal boundary seams</span></span>
+        </button>
       </div>
       <div class="landing-controls">
         <p>ARROWS / WASD to move &nbsp; SPACE to fire &nbsp; SHIFT hyperspace</p>
@@ -73,6 +77,9 @@ export function createLandingPage(root: HTMLElement, options: LandingPageOptions
         break;
       case '6':
         options.onSelect('klein');
+        break;
+      case '7':
+        options.onSelect('projective');
         break;
     }
   }

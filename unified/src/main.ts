@@ -7,6 +7,7 @@ import { createLandingPage } from './landing';
 import { createAnnulusTopology } from './topology/annulus';
 import { createKleinTopology } from './topology/klein';
 import { createOctagonTopology } from './topology/octagon';
+import { createProjectiveTopology } from './topology/projective';
 import { createRectangleTopology } from './topology/rectangle';
 import { createHandleTopology } from './topology/handle';
 import { createSphereTopology } from './topology/sphere';
@@ -108,6 +109,8 @@ function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle'>)
           frameInset: 40,
           showIdentificationArrows: true,
         });
+      case 'projective':
+        return createProjectiveTopology();
     }
   })();
 
@@ -235,12 +238,13 @@ async function toggleFullscreen(element: HTMLElement): Promise<void> {
 function parseInitialTopology(): TopologyType | null {
   const params = new URLSearchParams(window.location.search);
   const raw = params.get('mode') ?? params.get('topology');
-  if (raw === 'rectangle' || raw === 'annulus' || raw === 'octagon' || raw === 'sphere' || raw === 'handle' || raw === 'klein') {
+  if (raw === 'rectangle' || raw === 'annulus' || raw === 'octagon' || raw === 'sphere' || raw === 'handle' || raw === 'klein' || raw === 'projective') {
     return raw;
   }
   if (raw === 'spherical') return 'sphere';
   if (raw === 'genus2-handle' || raw === 'rectangle-handle' || raw === 'handle-rect') return 'handle';
   if (raw === 'klein-bottle') return 'klein';
+  if (raw === 'projective-plane' || raw === 'rp2') return 'projective';
   return null;
 }
 
