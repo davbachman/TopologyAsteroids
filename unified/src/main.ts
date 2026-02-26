@@ -128,10 +128,15 @@ function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle'>)
 }
 
 function startRectangleGame(): void {
+  const frameInset = 40;
   const topology = createRectangleTopology(1024, 768, {
-    frameInset: 40,
+    frameInset,
     showIdentificationArrows: true,
   });
+  const torusTextureTopology = createRectangleTopology(
+    topology.worldWidth - frameInset * 2,
+    topology.worldHeight - frameInset * 2,
+  );
 
   // Build split-screen layout
   const shell = document.createElement('main');
@@ -167,9 +172,9 @@ function startRectangleGame(): void {
 
   // Create an off-screen canvas for the torus texture (world only, no HUD/text)
   const torusTextureCanvas = document.createElement('canvas');
-  torusTextureCanvas.width = topology.worldWidth;
-  torusTextureCanvas.height = topology.worldHeight;
-  const torusWorldRenderer = new CanvasRenderer(torusTextureCanvas, topology);
+  torusTextureCanvas.width = torusTextureTopology.worldWidth;
+  torusTextureCanvas.height = torusTextureTopology.worldHeight;
+  const torusWorldRenderer = new CanvasRenderer(torusTextureCanvas, torusTextureTopology);
 
   // Create 3D torus renderer
   let torusRenderer: TorusRenderer;

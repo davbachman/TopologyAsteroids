@@ -22,3 +22,5 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Optional next unification step: extract shared gameplay core into a dedicated package/workspace if the nested repos are later merged into one Git repo.
 - Sphere mode follow-up ideas: tune seam transformation feel (radial reflection vs alternate identification), add explicit seam visual cues, and balance spawn placement for better early-game distribution across both disks.
 - Handle mode follow-up ideas: tune hole size/placement, add stronger seam ghost rendering for clearer hole transfers, and optionally display a short on-screen legend explaining the reflection rule.
+- Adjusted rectangle-mode torus 3D texture source to render from a second offscreen rectangle topology sized exactly to the inset playfield (no decorative border/HUD margins), eliminating texture seam gaps caused by mapping the full canvas while gameplay wraps on the inset rectangle.
+- Validation: `unified` build passes and manual/Playwright visual check of `?mode=rectangle` confirms torus mapping now corresponds to the area inside the bounding rectangle.
