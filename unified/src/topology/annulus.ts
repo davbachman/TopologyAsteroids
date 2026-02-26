@@ -1,7 +1,7 @@
 import type { Vec2 } from '../core/types';
 import { normalize, scale } from '../core/math/vector';
 import { randRange } from '../core/math/random';
-import { drawCircleTangentMarker } from './boundaryMarks';
+import { drawChevron } from './boundaryMarks';
 import type { Topology, WrapResult } from './topology';
 
 /**
@@ -109,6 +109,13 @@ export function createAnnulusTopology(
   }
 
   function drawBoundary(ctx: CanvasRenderingContext2D): void {
+    function drawSingleCircleTangentArrow(radius: number, theta: number, tangentDirection: 1 | -1): void {
+      const x = Math.cos(theta) * radius;
+      const y = Math.sin(theta) * radius;
+      const angle = theta + (tangentDirection > 0 ? Math.PI / 2 : -Math.PI / 2);
+      drawChevron(ctx, x, y, angle, 10);
+    }
+
     ctx.save();
     ctx.strokeStyle = '#f5f5f5';
     ctx.lineWidth = 2;
@@ -121,10 +128,10 @@ export function createAnnulusTopology(
 
     // Mark inner/outer boundary identification (same angular coordinate).
     ctx.lineWidth = 1.5;
-    drawCircleTangentMarker(ctx, { x: 0, y: 0 }, outerRadius, -Math.PI / 2, 1, 0, 10);
-    drawCircleTangentMarker(ctx, { x: 0, y: 0 }, innerRadius, -Math.PI / 2, -1, 0, 10);
-    drawCircleTangentMarker(ctx, { x: 0, y: 0 }, outerRadius, Math.PI / 2, 1, 0, 10);
-    drawCircleTangentMarker(ctx, { x: 0, y: 0 }, innerRadius, Math.PI / 2, -1, 0, 10);
+    drawSingleCircleTangentArrow(outerRadius, -Math.PI / 2, 1);
+    drawSingleCircleTangentArrow(innerRadius, -Math.PI / 2, 1);
+    drawSingleCircleTangentArrow(outerRadius, Math.PI / 2, 1);
+    drawSingleCircleTangentArrow(innerRadius, Math.PI / 2, 1);
     ctx.restore();
   }
 
