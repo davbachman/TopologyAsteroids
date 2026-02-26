@@ -1,13 +1,55 @@
 import type { Vec2 } from '../core/types';
 import type { Topology, WrapResult } from './topology';
 
+export interface RectangleTopologyOptions {
+  frameInset?: number;
+  showIdentificationArrows?: boolean;
+}
+
 /**
  * Rectangle topology for standard torus (opposite edges identified).
  * Coordinates are centered: x in [-w/2, w/2], y in [-h/2, h/2].
  */
-export function createRectangleTopology(worldWidth = 1024, worldHeight = 768): Topology {
-  const hw = worldWidth / 2;
-  const hh = worldHeight / 2;
+export function createRectangleTopology(
+  worldWidth = 1024,
+  worldHeight = 768,
+  options: RectangleTopologyOptions = {},
+): Topology {
+  const inset = Math.max(0, Math.floor(options.frameInset ?? 0));
+  const playWidth = Math.max(32, worldWidth - inset * 2);
+  const playHeight = Math.max(32, worldHeight - inset * 2);
+  const hw = playWidth / 2;
+  const hh = playHeight / 2;
+  const showBoundary = inset > 0 || Boolean(options.showIdentificationArrows);
+
+  function drawChevron(ctx: CanvasRenderingContext2D, x: number, y: number, dir: 'right' | 'up', size = 12): void {
+    const half = size * 0.52;
+    ctx.beginPath();
+    if (dir === 'right') {
+      ctx.moveTo(x - size, y - half);
+      ctx.lineTo(x, y);
+      ctx.lineTo(x - size, y + half);
+    } else {
+      ctx.moveTo(x - half, y + size);
+      ctx.lineTo(x, y);
+      ctx.lineTo(x + half, y + size);
+    }
+    ctx.stroke();
+  }
+
+  function drawIdentificationArrows(ctx: CanvasRenderingContext2D): void {
+    // Top and bottom: arrows point right
+    const topY = -hh;
+    const bottomY = hh;
+    drawChevron(ctx, -6, topY, 'right', 12);
+    drawChevron(ctx, 22, topY, 'right', 12);
+    drawChevron(ctx, -6, bottomY, 'right', 12);
+    drawChevron(ctx, 22, bottomY, 'right', 12);
+
+    // Left and right: arrows point up
+    drawChevron(ctx, -hw, 0, 'up', 12);
+    drawChevron(ctx, hw, 0, 'up', 12);
+  }
 
   function wrapAxis(val: number, extent: number): number {
     let v = val % extent;
@@ -19,8 +61,8 @@ export function createRectangleTopology(worldWidth = 1024, worldHeight = 768): T
     const ox = point.x;
     const oy = point.y;
     // Wrap centered coordinates
-    point.x = wrapAxis(point.x + hw, worldWidth) - hw;
-    point.y = wrapAxis(point.y + hh, worldHeight) - hh;
+    point.x = wrapAxis(point.x + hw, playWidth) - hw;
+    point.y = wrapAxis(point.y + hh, playHeight) - hh;
     return {
       offset: { x: point.x - ox, y: point.y - oy },
       passes: (ox !== point.x || oy !== point.y) ? 1 : 0,
@@ -40,16 +82,16 @@ export function createRectangleTopology(worldWidth = 1024, worldHeight = 768): T
     const nearBottom = hh - point.y <= radius;
     const nearTop = point.y + hh <= radius;
 
-    if (nearRight) offsets.push({ x: -worldWidth, y: 0 });
-    if (nearLeft) offsets.push({ x: worldWidth, y: 0 });
-    if (nearBottom) offsets.push({ x: 0, y: -worldHeight });
-    if (nearTop) offsets.push({ x: 0, y: worldHeight });
+    if (nearRight) offsets.push({ x: -playWidth, y: 0 });
+    if (nearLeft) offsets.push({ x: playWidth, y: 0 });
+    if (nearBottom) offsets.push({ x: 0, y: -playHeight });
+    if (nearTop) offsets.push({ x: 0, y: playHeight });
 
     // Corner ghosts
-    if (nearRight && nearBottom) offsets.push({ x: -worldWidth, y: -worldHeight });
-    if (nearRight && nearTop) offsets.push({ x: -worldWidth, y: worldHeight });
-    if (nearLeft && nearBottom) offsets.push({ x: worldWidth, y: -worldHeight });
-    if (nearLeft && nearTop) offsets.push({ x: worldWidth, y: worldHeight });
+    if (nearRight && nearBottom) offsets.push({ x: -playWidth, y: -playHeight });
+    if (nearRight && nearTop) offsets.push({ x: -playWidth, y: playHeight });
+    if (nearLeft && nearBottom) offsets.push({ x: playWidth, y: -playHeight });
+    if (nearLeft && nearTop) offsets.push({ x: playWidth, y: playHeight });
 
     return offsets;
   }
@@ -79,11 +121,22 @@ export function createRectangleTopology(worldWidth = 1024, worldHeight = 768): T
 
   function buildClipPath(ctx: CanvasRenderingContext2D): void {
     ctx.beginPath();
-    ctx.rect(-hw, -hh, worldWidth, worldHeight);
+    ctx.rect(-hw, -hh, playWidth, playHeight);
   }
 
-  function drawBoundary(_ctx: CanvasRenderingContext2D): void {
-    // No visible boundary for torus (edges are seamless)
+  function drawBoundary(ctx: CanvasRenderingContext2D): void {
+    if (!showBoundary) return;
+    ctx.save();
+    ctx.strokeStyle = '#f5f5f5';
+    ctx.lineWidth = 1.75;
+    ctx.beginPath();
+    ctx.rect(-hw, -hh, playWidth, playHeight);
+    ctx.stroke();
+
+    if (options.showIdentificationArrows) {
+      drawIdentificationArrows(ctx);
+    }
+    ctx.restore();
   }
 
   function drawStars(ctx: CanvasRenderingContext2D, time: number): void {
@@ -115,7 +168,7 @@ export function createRectangleTopology(worldWidth = 1024, worldHeight = 768): T
     buildClipPath,
     drawBoundary,
     drawStars,
-    logicalSize: Math.max(worldWidth, worldHeight),
+    logicalSize: Math.max(playWidth, playHeight),
     worldWidth,
     worldHeight,
     centered: true,
