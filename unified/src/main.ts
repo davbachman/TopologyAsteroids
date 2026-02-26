@@ -129,7 +129,7 @@ function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle'>)
 
 function startRectangleGame(): void {
   const topology = createRectangleTopology(1024, 768, {
-    frameInset: 28,
+    frameInset: 40,
     showIdentificationArrows: true,
   });
 
