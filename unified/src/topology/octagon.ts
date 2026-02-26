@@ -1,5 +1,6 @@
 import type { Vec2 } from '../core/types';
 import { dot, length, normalize, perp, scale } from '../core/math/vector';
+import { drawEdgeMarker } from './boundaryMarks';
 import type { Topology, WrapResult } from './topology';
 
 const SQRT1_2 = Math.SQRT1_2;
@@ -31,6 +32,28 @@ function createGeometry(apothem: number): OctagonGeometry {
 
 export function createOctagonTopology(apothem = 360): Topology {
   const geo = createGeometry(apothem);
+  const edgeMarkers = geo.vertices.map((a, i) => {
+    const b = geo.vertices[(i + 1) % geo.vertices.length];
+    const midpoint = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+
+    let normalIndex = 0;
+    let bestAbs = -Infinity;
+    for (let j = 0; j < geo.normals.length; j += 1) {
+      const d = dot(geo.normals[j], midpoint);
+      const abs = Math.abs(d);
+      if (abs > bestAbs) {
+        bestAbs = abs;
+        normalIndex = j;
+      }
+    }
+
+    const normal = geo.normals[normalIndex];
+    const sign = dot(normal, midpoint) >= 0 ? 1 : -1;
+    const inwardNormal = { x: -normal.x * sign, y: -normal.y * sign };
+    const tangent = { x: -normal.y, y: normal.x };
+
+    return { midpoint, inwardNormal, tangent };
+  });
 
   function wrapInPlace(point: Vec2): WrapResult {
     const offset = { x: 0, y: 0 };
@@ -140,6 +163,11 @@ export function createOctagonTopology(apothem = 360): Topology {
     ctx.lineWidth = 2;
     buildClipPath(ctx);
     ctx.stroke();
+
+    ctx.lineWidth = 1.5;
+    for (const marker of edgeMarkers) {
+      drawEdgeMarker(ctx, marker.midpoint, marker.tangent, marker.inwardNormal, 12, 9);
+    }
     ctx.restore();
   }
 

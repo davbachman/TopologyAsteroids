@@ -1,4 +1,5 @@
 import type { Vec2 } from '../core/types';
+import { drawCircleTangentMarker, drawDoubleChevron } from './boundaryMarks';
 import type { Topology, WrapResult } from './topology';
 
 const WORLD_WIDTH = 1024;
@@ -232,6 +233,19 @@ export function createHandleTopology(): Topology {
       ctx.arc(c.x, c.y, HOLE_RADIUS, 0, Math.PI * 2);
       ctx.stroke();
     }
+
+    // Rectangle edge identifications (same as torus rectangle mode), shown without a border line.
+    ctx.lineWidth = 1.5;
+    drawDoubleChevron(ctx, 0, -HALF_H + 14, 0, 10);
+    drawDoubleChevron(ctx, 0, HALF_H - 14, 0, 10);
+    drawDoubleChevron(ctx, -HALF_W + 14, 0, -Math.PI / 2, 10);
+    drawDoubleChevron(ctx, HALF_W - 14, 0, -Math.PI / 2, 10);
+
+    // Hole-pair identification: boundary points map by left-right reflection, so orientation reverses.
+    drawCircleTangentMarker(ctx, LEFT_HOLE_CENTER, HOLE_RADIUS, -Math.PI / 2, 1, 0, 10);
+    drawCircleTangentMarker(ctx, RIGHT_HOLE_CENTER, HOLE_RADIUS, -Math.PI / 2, -1, 0, 10);
+    drawCircleTangentMarker(ctx, LEFT_HOLE_CENTER, HOLE_RADIUS, Math.PI / 2, 1, 0, 10);
+    drawCircleTangentMarker(ctx, RIGHT_HOLE_CENTER, HOLE_RADIUS, Math.PI / 2, -1, 0, 10);
     ctx.restore();
   }
 

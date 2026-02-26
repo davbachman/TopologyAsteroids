@@ -1,6 +1,7 @@
 import type { Vec2 } from '../core/types';
 import { normalize, scale } from '../core/math/vector';
 import { randRange } from '../core/math/random';
+import { drawCircleTangentMarker } from './boundaryMarks';
 import type { Topology, WrapResult } from './topology';
 
 /**
@@ -117,6 +118,13 @@ export function createAnnulusTopology(
     ctx.beginPath();
     ctx.arc(0, 0, innerRadius, 0, Math.PI * 2);
     ctx.stroke();
+
+    // Mark inner/outer boundary identification (same angular coordinate).
+    ctx.lineWidth = 1.5;
+    drawCircleTangentMarker(ctx, { x: 0, y: 0 }, outerRadius, -Math.PI / 2, 1, 0, 10);
+    drawCircleTangentMarker(ctx, { x: 0, y: 0 }, innerRadius, -Math.PI / 2, -1, 0, 10);
+    drawCircleTangentMarker(ctx, { x: 0, y: 0 }, outerRadius, Math.PI / 2, 1, 0, 10);
+    drawCircleTangentMarker(ctx, { x: 0, y: 0 }, innerRadius, Math.PI / 2, -1, 0, 10);
     ctx.restore();
   }
 

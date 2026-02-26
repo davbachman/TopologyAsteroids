@@ -24,3 +24,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Handle mode follow-up ideas: tune hole size/placement, add stronger seam ghost rendering for clearer hole transfers, and optionally display a short on-screen legend explaining the reflection rule.
 - Adjusted rectangle-mode torus 3D texture source to render from a second offscreen rectangle topology sized exactly to the inset playfield (no decorative border/HUD margins), eliminating texture seam gaps caused by mapping the full canvas while gameplay wraps on the inset rectangle.
 - Validation: `unified` build passes and manual/Playwright visual check of `?mode=rectangle` confirms torus mapping now corresponds to the area inside the bounding rectangle.
+- Added seam identification markers to annulus, octagon, sphere, and handle topologies (boundary arrows/chevrons indicating paired boundaries and orientation).
+- Added shared boundary marker helpers in `unified/src/topology/boundaryMarks.ts` to keep topology boundary annotations consistent.
+- Validation: `unified` tests/build pass; Playwright visual checks completed for `annulus`, `octagon`, `sphere`, and `handle` modes with markers visible and HUD-safe.

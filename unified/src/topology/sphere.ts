@@ -1,5 +1,6 @@
 import type { Vec2 } from '../core/types';
 import { randRange } from '../core/math/random';
+import { drawCircleTangentMarker } from './boundaryMarks';
 import type { Topology, WrapResult } from './topology';
 
 interface Disk {
@@ -168,6 +169,14 @@ export function createSphereTopology(): Topology {
       ctx.beginPath();
       ctx.arc(disk.center.x, disk.center.y, DISK_RADIUS, 0, Math.PI * 2);
       ctx.stroke();
+    }
+
+    // Mark the paired disk boundaries (same boundary point on the other disk).
+    ctx.lineWidth = 1.5;
+    for (const disk of DISKS) {
+      drawCircleTangentMarker(ctx, disk.center, DISK_RADIUS, -Math.PI / 2, 1, 0, 10);
+      drawCircleTangentMarker(ctx, disk.center, DISK_RADIUS, Math.PI / 2, 1, 0, 10);
+      drawCircleTangentMarker(ctx, disk.center, DISK_RADIUS, 0, 1, 0, 10);
     }
 
     ctx.fillStyle = 'rgba(245,245,245,0.5)';
