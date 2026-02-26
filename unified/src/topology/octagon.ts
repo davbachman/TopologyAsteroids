@@ -1,6 +1,6 @@
 import type { Vec2 } from '../core/types';
 import { dot, length, normalize, perp, scale } from '../core/math/vector';
-import { drawEdgeMarker } from './boundaryMarks';
+import { drawChevron } from './boundaryMarks';
 import type { Topology, WrapResult } from './topology';
 
 const SQRT1_2 = Math.SQRT1_2;
@@ -48,11 +48,10 @@ export function createOctagonTopology(apothem = 360): Topology {
     }
 
     const normal = geo.normals[normalIndex];
-    const sign = dot(normal, midpoint) >= 0 ? 1 : -1;
-    const inwardNormal = { x: -normal.x * sign, y: -normal.y * sign };
-    const tangent = { x: -normal.y, y: normal.x };
+    // Pick a consistent tangent orientation so opposite identified edges show matching arrow direction.
+    const tangent = { x: normal.y, y: -normal.x };
 
-    return { midpoint, inwardNormal, tangent };
+    return { midpoint, tangent, normalIndex };
   });
 
   function wrapInPlace(point: Vec2): WrapResult {
@@ -165,8 +164,23 @@ export function createOctagonTopology(apothem = 360): Topology {
     ctx.stroke();
 
     ctx.lineWidth = 1.5;
+    const chevronCountsByPair = [1, 2, 3, 4] as const; // left/right, top/bottom, diag+, diag-
     for (const marker of edgeMarkers) {
-      drawEdgeMarker(ctx, marker.midpoint, marker.tangent, marker.inwardNormal, 12, 9);
+      const count = chevronCountsByPair[marker.normalIndex];
+      const spacing = 16;
+      const angle = Math.atan2(marker.tangent.y, marker.tangent.x);
+      const start = -((count - 1) * spacing) / 2;
+
+      for (let i = 0; i < count; i += 1) {
+        const offset = start + i * spacing;
+        drawChevron(
+          ctx,
+          marker.midpoint.x + marker.tangent.x * offset,
+          marker.midpoint.y + marker.tangent.y * offset,
+          angle,
+          8.5,
+        );
+      }
     }
     ctx.restore();
   }
