@@ -32,6 +32,10 @@ export function createLandingPage(root: HTMLElement, options: LandingPageOptions
           <span class="option-number">5</span>
           <span class="option-text">Genus two on a rectangle<br><span class="option-detail">with a reflected handle seam</span></span>
         </button>
+        <button class="landing-option" data-topology="klein">
+          <span class="option-number">6</span>
+          <span class="option-text">Klein Bottle universe on a<br><span class="option-detail">twisted rectangle</span></span>
+        </button>
       </div>
       <div class="landing-controls">
         <p>ARROWS / WASD to move &nbsp; SPACE to fire &nbsp; SHIFT hyperspace</p>
@@ -66,6 +70,9 @@ export function createLandingPage(root: HTMLElement, options: LandingPageOptions
         break;
       case '5':
         options.onSelect('handle');
+        break;
+      case '6':
+        options.onSelect('klein');
         break;
     }
   }

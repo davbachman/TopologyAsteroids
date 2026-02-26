@@ -30,3 +30,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Updated handle topology to support an inset rectangular playfield (frameInset option) so the wrapped area can be shrunk like rectangle mode while retaining the same canvas size.
 - Handle mode now renders a bounding rectangle and boundary markers with distinct counts: single on left/right edges, double on top/bottom edges, and triple on the circular hole seams.
 - Wired `handle` mode launch in `main.ts` to use `frameInset: 40`; validated with tests/build and a handle-mode visual screenshot.
+- Added `klein` topology mode (Klein Bottle Universe) as a rectangular playfield with a twisted left/right seam: crossing left/right wraps with a 180-degree rotation in the rectangle coordinates (implemented as `y -> -y`).
+- Added kinematics transforms and ghost image generation for the twisted seam so bullets/ships preserve consistent motion and wrap rendering near the side seam.
+- Added landing page option `6`, `?mode=klein` direct launch, and topology tests; validated with `unified` tests/build and a visual `klein` screenshot showing the requested left/down and right/up side arrows.

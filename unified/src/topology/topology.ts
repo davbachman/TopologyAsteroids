@@ -58,4 +58,4 @@ export interface Topology {
   readonly centered: boolean;
 }
 
-export type TopologyType = 'octagon' | 'rectangle' | 'annulus' | 'sphere' | 'handle';
+export type TopologyType = 'octagon' | 'rectangle' | 'annulus' | 'sphere' | 'handle' | 'klein';

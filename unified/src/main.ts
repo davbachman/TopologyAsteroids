@@ -5,6 +5,7 @@ import { Game } from './core/game';
 import { CanvasRenderer } from './core/render/canvasRenderer';
 import { createLandingPage } from './landing';
 import { createAnnulusTopology } from './topology/annulus';
+import { createKleinTopology } from './topology/klein';
 import { createOctagonTopology } from './topology/octagon';
 import { createRectangleTopology } from './topology/rectangle';
 import { createHandleTopology } from './topology/handle';
@@ -102,6 +103,11 @@ function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle'>)
         return createSphereTopology();
       case 'handle':
         return createHandleTopology({ frameInset: 40 });
+      case 'klein':
+        return createKleinTopology(1024, 768, {
+          frameInset: 40,
+          showIdentificationArrows: true,
+        });
     }
   })();
 
@@ -229,11 +235,12 @@ async function toggleFullscreen(element: HTMLElement): Promise<void> {
 function parseInitialTopology(): TopologyType | null {
   const params = new URLSearchParams(window.location.search);
   const raw = params.get('mode') ?? params.get('topology');
-  if (raw === 'rectangle' || raw === 'annulus' || raw === 'octagon' || raw === 'sphere' || raw === 'handle') {
+  if (raw === 'rectangle' || raw === 'annulus' || raw === 'octagon' || raw === 'sphere' || raw === 'handle' || raw === 'klein') {
     return raw;
   }
   if (raw === 'spherical') return 'sphere';
   if (raw === 'genus2-handle' || raw === 'rectangle-handle' || raw === 'handle-rect') return 'handle';
+  if (raw === 'klein-bottle') return 'klein';
   return null;
 }
 
