@@ -1,6 +1,6 @@
 import type { Vec2 } from '../core/types';
 import { randRange } from '../core/math/random';
-import { drawCircleTangentMarker } from './boundaryMarks';
+import { drawChevron } from './boundaryMarks';
 import type { Topology, WrapResult } from './topology';
 
 interface Disk {
@@ -162,6 +162,13 @@ export function createSphereTopology(): Topology {
   }
 
   function drawBoundary(ctx: CanvasRenderingContext2D): void {
+    function drawSingleCircleTangentArrow(center: Vec2, radius: number, theta: number, tangentDirection: 1 | -1): void {
+      const x = center.x + Math.cos(theta) * radius;
+      const y = center.y + Math.sin(theta) * radius;
+      const angle = theta + (tangentDirection > 0 ? Math.PI / 2 : -Math.PI / 2);
+      drawChevron(ctx, x, y, angle, 10);
+    }
+
     ctx.save();
     ctx.strokeStyle = '#f5f5f5';
     ctx.lineWidth = 2;
@@ -174,9 +181,9 @@ export function createSphereTopology(): Topology {
     // Mark the paired disk boundaries (same boundary point on the other disk).
     ctx.lineWidth = 1.5;
     for (const disk of DISKS) {
-      drawCircleTangentMarker(ctx, disk.center, DISK_RADIUS, -Math.PI / 2, 1, 0, 10);
-      drawCircleTangentMarker(ctx, disk.center, DISK_RADIUS, Math.PI / 2, 1, 0, 10);
-      drawCircleTangentMarker(ctx, disk.center, DISK_RADIUS, 0, 1, 0, 10);
+      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, -Math.PI / 2, 1);
+      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, Math.PI / 2, 1);
+      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, 0, 1);
     }
 
     ctx.fillStyle = 'rgba(245,245,245,0.5)';
