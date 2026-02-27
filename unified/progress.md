@@ -37,3 +37,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Added boundary decorations for the projective disk: left/right dots, top single right-pointing arrow, bottom single left-pointing arrow.
 - Added landing page option `7`, `?mode=projective` (plus aliases), and topology tests; validated with `unified` tests/build and projective-mode visual screenshots.
 - Fixed projective-plane seam transport: wrapped velocity/heading now reflect across the boundary radius (using the pre-wrap radial direction) instead of rotating by pi, so objects re-enter the disk after antipodal transport.
+- Rectangle/torus mode update: rotated torus texture vertical parameter by 180 degrees (`fixedTextureOffset.y` shift from `0.75` to `0.25`).
+- Torus texture source now renders rectangle boundary + identification arrows (using a torus texture topology with `showIdentificationArrows: true`), so border/arrow markings map directly onto the 3D torus.
+- Validation: `unified` build passes after the mapping/render changes.

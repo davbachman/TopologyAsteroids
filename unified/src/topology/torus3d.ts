@@ -12,7 +12,8 @@ export function createTorusRenderer(
 ): TorusRenderer {
   const shared = createSharedTorusRenderer(host, sourceCanvas, {
     // Position the center of the rectangle on the front-facing surface.
-    fixedTextureOffset: { x: 0.25, y: 0.75 },
+    // Rotate the torus vertical texture parameter by 180 degrees.
+    fixedTextureOffset: { x: 0.25, y: 0.25 },
   });
   return {
     resize: shared.resize,

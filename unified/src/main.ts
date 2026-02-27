@@ -145,6 +145,9 @@ function startRectangleGame(): void {
   const torusTextureTopology = createRectangleTopology(
     topology.worldWidth - frameInset * 2,
     topology.worldHeight - frameInset * 2,
+    {
+      showIdentificationArrows: true,
+    },
   );
 
   // Build split-screen layout
