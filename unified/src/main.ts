@@ -219,6 +219,12 @@ function startRectangleGame(): void {
     if (!currentGame) return;
     const state = currentGame.getState();
     torusWorldRenderer.renderWorldOnly(state);
+    torusWorldRenderer.renderShiftedEntityGhosts(
+      state,
+      { x: torusTextureTopology.worldWidth * 0.5, y: 0 },
+      0.18,
+      'screen',
+    );
     torusRenderer.render();
     rafId = requestAnimationFrame(torusFrame);
   }

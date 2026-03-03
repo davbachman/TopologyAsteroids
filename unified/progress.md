@@ -40,3 +40,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Rectangle/torus mode update: rotated torus texture vertical parameter by 180 degrees (`fixedTextureOffset.y` shift from `0.75` to `0.25`).
 - Torus texture source now renders rectangle boundary + identification arrows (using a torus texture topology with `showIdentificationArrows: true`), so border/arrow markings map directly onto the 3D torus.
 - Validation: `unified` build passes after the mapping/render changes.
+- Added faint back-side torus entity overlay in rectangle mode by rendering a shifted (half-width) ghost pass on the torus texture canvas with low alpha/screen blending.
+- Refactored `CanvasRenderer` entity drawing to support shifted ghost rendering without HUD impact; torus mode now calls `renderShiftedEntityGhosts` each frame after `renderWorldOnly`.
+- Validation: `unified` tests and build pass after the torus ghost overlay changes.

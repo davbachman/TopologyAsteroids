@@ -29,6 +29,32 @@ export class CanvasRenderer {
     this.renderScene(state);
   }
 
+  /**
+   * Overlay faint, shifted copies of world entities.
+   * Used by torus-mapping views to hint what appears on the far side of the surface.
+   */
+  renderShiftedEntityGhosts(
+    state: GameState,
+    shift: Vec2,
+    alpha = 0.2,
+    composite: GlobalCompositeOperation = 'screen',
+  ): void {
+    const { ctx } = this;
+    const w = this.topology.worldWidth;
+    const h = this.topology.worldHeight;
+
+    ctx.save();
+    if (this.topology.centered) {
+      ctx.translate(w / 2, h / 2);
+    }
+    this.topology.buildClipPath(ctx);
+    ctx.clip();
+    ctx.globalAlpha = alpha;
+    ctx.globalCompositeOperation = composite;
+    this.drawEntitiesShifted(state, shift);
+    ctx.restore();
+  }
+
   private renderScene(state: GameState): void {
     const { ctx } = this;
     const w = this.topology.worldWidth;
@@ -65,11 +91,24 @@ export class CanvasRenderer {
 
     ctx.lineWidth = 1.75;
     ctx.strokeStyle = '#f5f5f5';
+    this.drawEntitiesShifted(state, { x: 0, y: 0 });
+
+    ctx.restore();
+  }
+
+  private drawEntitiesShifted(state: GameState, shift: Vec2): void {
+    const { ctx } = this;
+    const shifted = (point: Vec2): Vec2 => {
+      const mapped = { x: point.x + shift.x, y: point.y + shift.y };
+      this.topology.wrapInPlace(mapped);
+      return mapped;
+    };
 
     for (const asteroid of state.asteroids) {
-      this.drawWrapped(asteroid.pos, asteroid.radius + 3, (offset) => {
+      const pos = shift.x === 0 && shift.y === 0 ? asteroid.pos : shifted(asteroid.pos);
+      this.drawWrapped(pos, asteroid.radius + 3, (offset) => {
         ctx.save();
-        ctx.translate(asteroid.pos.x + offset.x, asteroid.pos.y + offset.y);
+        ctx.translate(pos.x + offset.x, pos.y + offset.y);
         ctx.rotate(asteroid.angle);
         drawAsteroidWireframe(ctx, asteroid);
         ctx.restore();
@@ -77,9 +116,10 @@ export class CanvasRenderer {
     }
 
     if (state.player.alive && this.isPlayerVisible(state)) {
-      this.drawWrapped(state.player.pos, state.player.radius + 3, (offset) => {
+      const pos = shift.x === 0 && shift.y === 0 ? state.player.pos : shifted(state.player.pos);
+      this.drawWrapped(pos, state.player.radius + 3, (offset) => {
         ctx.save();
-        ctx.translate(state.player.pos.x + offset.x, state.player.pos.y + offset.y);
+        ctx.translate(pos.x + offset.x, pos.y + offset.y);
         ctx.rotate(state.player.angle);
         drawShipWireframe(ctx, state.player.radius, state.player.thrusting);
         ctx.restore();
@@ -87,33 +127,34 @@ export class CanvasRenderer {
     }
 
     for (const bullet of state.playerBullets) {
-      this.drawWrapped(bullet.pos, bullet.radius + 1, (offset) => {
+      const pos = shift.x === 0 && shift.y === 0 ? bullet.pos : shifted(bullet.pos);
+      this.drawWrapped(pos, bullet.radius + 1, (offset) => {
         ctx.save();
-        ctx.translate(bullet.pos.x + offset.x, bullet.pos.y + offset.y);
+        ctx.translate(pos.x + offset.x, pos.y + offset.y);
         drawBulletWireframe(ctx, bullet.radius);
         ctx.restore();
       });
     }
 
     for (const bullet of state.ufoBullets) {
-      this.drawWrapped(bullet.pos, bullet.radius + 1, (offset) => {
+      const pos = shift.x === 0 && shift.y === 0 ? bullet.pos : shifted(bullet.pos);
+      this.drawWrapped(pos, bullet.radius + 1, (offset) => {
         ctx.save();
-        ctx.translate(bullet.pos.x + offset.x, bullet.pos.y + offset.y);
+        ctx.translate(pos.x + offset.x, pos.y + offset.y);
         drawBulletWireframe(ctx, bullet.radius);
         ctx.restore();
       });
     }
 
     if (state.ufo?.alive) {
-      this.drawWrapped(state.ufo.pos, state.ufo.radius + 3, (offset) => {
+      const pos = shift.x === 0 && shift.y === 0 ? state.ufo.pos : shifted(state.ufo.pos);
+      this.drawWrapped(pos, state.ufo.radius + 3, (offset) => {
         ctx.save();
-        ctx.translate(state.ufo!.pos.x + offset.x, state.ufo!.pos.y + offset.y);
+        ctx.translate(pos.x + offset.x, pos.y + offset.y);
         drawUfoWireframe(ctx, state.ufo!);
         ctx.restore();
       });
     }
-
-    ctx.restore();
   }
 
   private drawHud(state: GameState): void {
