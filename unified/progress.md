@@ -55,6 +55,7 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Torus back-side pass now draws entities at true texture coordinates (no half-width UV shift); back-face visibility is handled by the 3D mesh orientation, correcting geometric mapping near tangencies.
 - Torus texture sampling now uses mipmaps + trilinear minification + anisotropy on both base and back-overlay canvases, improving minification/foreshortening behavior at grazing angles.
 - Validation: `unified` tests/build pass, `TorusAsteroids` build passes, and manual Playwright screenshot check on `?mode=rectangle` confirms back-side entities track true torus geometry instead of synthetic opposite-side ghosts.
+- Reworked torus back-side visibility from face-orientation-based shading (`gl_FrontFacing`) to a depth-occluded overlay pass (`depthFunc = GreaterDepth`) so far-side entities appear where they pass behind the visible torus shell, starting at silhouette boundaries.
 - Updated sphere topology seam identification to mirror across the vertical divider between disks (local `x` reflection), including wrap mapping, ghost offsets, and wrap kinematics transforms.
 - Reversed sphere boundary marker arrow direction on the right disk to match mirrored identification orientation.
 - Validation: `unified` `npm test` (8 files / 36 tests) and `npm run build` pass; Playwright run on `?mode=sphere` with explicit `enter` action shows gameplay + mirrored markers (artifacts in `unified/output/web-game-sphere-mirror/`, no error logs).

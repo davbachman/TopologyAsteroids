@@ -139,45 +139,24 @@ export function createSharedTorusRenderer(
   const torus = new THREE.Mesh(torusGeometry, torusMaterial);
   scene.add(torus);
 
-  let backOverlayMaterial: THREE.ShaderMaterial | null = null;
+  let backOverlayMaterial: THREE.MeshBasicMaterial | null = null;
   let backOverlayMesh: THREE.Mesh | null = null;
   if (backTexture) {
-    backOverlayMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        uMap: { value: backTexture },
-        uTint: { value: new THREE.Color('#d9ecff') },
-        uOpacity: { value: 0.5 },
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform sampler2D uMap;
-        uniform vec3 uTint;
-        uniform float uOpacity;
-        varying vec2 vUv;
-
-        void main() {
-          if (gl_FrontFacing) discard;
-          vec4 tex = texture2D(uMap, vUv);
-          float alpha = tex.a * uOpacity;
-          if (alpha <= 0.001) discard;
-          gl_FragColor = vec4(uTint, alpha);
-        }
-      `,
+    backOverlayMaterial = new THREE.MeshBasicMaterial({
+      map: backTexture,
+      color: '#d9ecff',
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.52,
+      blending: THREE.NormalBlending,
       depthWrite: false,
-      depthTest: false,
+      depthTest: true,
+      depthFunc: THREE.GreaterDepth,
       side: THREE.DoubleSide,
       toneMapped: false,
     });
     backOverlayMesh = new THREE.Mesh(torusGeometry, backOverlayMaterial);
-    backOverlayMesh.scale.setScalar(1.001);
+    // Draw hidden-surface overlays only where torus fragments are behind the visible shell.
+    backOverlayMesh.renderOrder = 1;
     scene.add(backOverlayMesh);
   }
 
