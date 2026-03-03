@@ -46,3 +46,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Increased visibility of torus back-side entities by moving them to a dedicated transparent back-overlay texture and rendering that texture on a translucent `BackSide` torus mesh (additive blend, depth-test off).
 - Rectangle mode now maintains two torus texture canvases: base world texture and back-side entities-only overlay texture.
 - Validation: `unified` tests/build pass and `TorusAsteroids` build remains green after shared renderer API extension.
+- Tightened torus back-side visibility: replaced the back-overlay material with a custom shader that discards front-facing fragments (`gl_FrontFacing`) and renders only translucent back faces from the ghost texture.
+- This isolates the faint ghost entities specifically to the torus back side instead of relying on standard back-face material behavior.
+- Validation: `unified` tests/build and `TorusAsteroids` build all pass.
