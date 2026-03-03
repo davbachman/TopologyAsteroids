@@ -8,11 +8,27 @@ interface Disk {
   label: 'left' | 'right';
 }
 
-const DISK_RADIUS = 240;
-const WORLD_WIDTH = 1140;
-const WORLD_HEIGHT = 640;
-const LEFT_CENTER: Vec2 = { x: 300, y: 320 };
-const RIGHT_CENTER: Vec2 = { x: 840, y: 320 };
+export interface SphereDiskLayout {
+  worldWidth: number;
+  worldHeight: number;
+  diskRadius: number;
+  leftCenter: Vec2;
+  rightCenter: Vec2;
+}
+
+export const SPHERE_DISK_LAYOUT: SphereDiskLayout = {
+  worldWidth: 1140,
+  worldHeight: 640,
+  diskRadius: 240,
+  leftCenter: { x: 300, y: 320 },
+  rightCenter: { x: 840, y: 320 },
+};
+
+const DISK_RADIUS = SPHERE_DISK_LAYOUT.diskRadius;
+const WORLD_WIDTH = SPHERE_DISK_LAYOUT.worldWidth;
+const WORLD_HEIGHT = SPHERE_DISK_LAYOUT.worldHeight;
+const LEFT_CENTER: Vec2 = SPHERE_DISK_LAYOUT.leftCenter;
+const RIGHT_CENTER: Vec2 = SPHERE_DISK_LAYOUT.rightCenter;
 const DISKS: [Disk, Disk] = [
   { center: LEFT_CENTER, label: 'left' },
   { center: RIGHT_CENTER, label: 'right' },

@@ -146,7 +146,7 @@ export function createSharedTorusRenderer(
       map: backTexture,
       color: '#d9ecff',
       transparent: true,
-      opacity: 0.52,
+      opacity: 0.32,
       blending: THREE.NormalBlending,
       depthWrite: false,
       depthTest: true,

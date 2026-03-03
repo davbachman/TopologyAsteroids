@@ -59,3 +59,9 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Updated sphere topology seam identification to mirror across the vertical divider between disks (local `x` reflection), including wrap mapping, ghost offsets, and wrap kinematics transforms.
 - Reversed sphere boundary marker arrow direction on the right disk to match mirrored identification orientation.
 - Validation: `unified` `npm test` (8 files / 36 tests) and `npm run build` pass; Playwright run on `?mode=sphere` with explicit `enter` action shows gameplay + mirrored markers (artifacts in `unified/output/web-game-sphere-mirror/`, no error logs).
+- Reduced torus 3D back-side ghost intensity (back overlay material opacity lowered from `0.52` to `0.32`) for a fainter far-side read.
+- Added sphere-mode 3D overlay renderer (`unified/src/topology/sphere3d.ts`) and a dedicated `startSphereGame()` flow in `main.ts`.
+- Sphere mode now renders a center overlay canvas between the two 2D disks showing a 3D sphere: left disk maps to left hemisphere, right disk maps to right hemisphere, with the hemisphere divider drawn as a great circle.
+- Added hidden-surface sphere ghost pass (depth-occluded, tinted, translucent) so back-side objects remain visible but faint, matching torus-style visibility behavior.
+- To avoid seam artifacts, the 3D sphere texture source now uses a sphere texture topology clone with `drawBoundary` disabled (world content only); the great-circle divider is drawn explicitly in 3D.
+- Validation: `unified` `npm test` and `npm run build` pass; `TorusAsteroids` `npm run build` pass; Playwright visual checks saved at `unified/output/sphere-3d-overlay-start-v2.png`, `unified/output/sphere-3d-overlay-gameplay-v2.png`, and `unified/output/torus-fainter-backside.png`.

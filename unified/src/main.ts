@@ -10,9 +10,10 @@ import { createOctagonTopology } from './topology/octagon';
 import { createProjectiveTopology } from './topology/projective';
 import { createRectangleTopology } from './topology/rectangle';
 import { createHandleTopology } from './topology/handle';
-import { createSphereTopology } from './topology/sphere';
+import { createSphereTopology, SPHERE_DISK_LAYOUT } from './topology/sphere';
 import type { TopologyType } from './topology/topology';
 import { createTorusRenderer, type TorusRenderer } from './topology/torus3d';
+import { createSphereRenderer, type SphereRenderer } from './topology/sphere3d';
 
 declare global {
   interface Window {
@@ -30,6 +31,7 @@ if (!app) throw new Error('Missing #app container');
 
 let currentGame: Game | null = null;
 let currentTorusRenderer: TorusRenderer | null = null;
+let currentSphereRenderer: SphereRenderer | null = null;
 let currentLanding: { destroy: () => void } | null = null;
 let resizeHandler: (() => void) | null = null;
 let rafId = 0;
@@ -63,6 +65,8 @@ function cleanupGame(): void {
   currentGame = null;
   currentTorusRenderer?.dispose();
   currentTorusRenderer = null;
+  currentSphereRenderer?.dispose();
+  currentSphereRenderer = null;
   // Clear game DOM
   app!.innerHTML = '';
 }
@@ -80,6 +84,8 @@ function startGame(topologyType: TopologyType): void {
 
   if (topologyType === 'rectangle') {
     startRectangleGame();
+  } else if (topologyType === 'sphere') {
+    startSphereGame();
   } else {
     startSingleCanvasGame(topologyType);
   }
@@ -93,15 +99,13 @@ function createMenuButton(onClick: () => void): HTMLButtonElement {
   return btn;
 }
 
-function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle'>): void {
+function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle' | 'sphere'>): void {
   const topology = (() => {
     switch (topologyType) {
       case 'octagon':
         return createOctagonTopology(360);
       case 'annulus':
         return createAnnulusTopology(110, 420);
-      case 'sphere':
-        return createSphereTopology();
       case 'handle':
         return createHandleTopology({ frameInset: 40 });
       case 'klein':
@@ -123,8 +127,11 @@ function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle'>)
   canvas.style.maxHeight = 'calc(100vh - 48px)';
   canvas.style.width = 'auto';
   canvas.style.height = 'auto';
+  const stage = document.createElement('div');
+  stage.className = 'game-stage';
+  stage.appendChild(canvas);
   shell.appendChild(createMenuButton(showLanding));
-  shell.appendChild(canvas);
+  shell.appendChild(stage);
   app!.appendChild(shell);
 
   const game = new Game(canvas, topology, {
@@ -134,6 +141,104 @@ function startSingleCanvasGame(topologyType: Exclude<TopologyType, 'rectangle'>)
 
   currentGame = game;
   game.start();
+}
+
+function startSphereGame(): void {
+  const topology = createSphereTopology();
+  const sphereTextureTopology = {
+    ...topology,
+    drawBoundary: () => {},
+  };
+
+  const shell = document.createElement('div');
+  shell.className = 'game-shell';
+  const canvas = document.createElement('canvas');
+  canvas.width = topology.worldWidth;
+  canvas.height = topology.worldHeight;
+  canvas.style.maxWidth = '94vw';
+  canvas.style.maxHeight = 'calc(100vh - 48px)';
+  canvas.style.width = 'auto';
+  canvas.style.height = 'auto';
+
+  const stage = document.createElement('div');
+  stage.className = 'game-stage sphere-stage';
+  stage.appendChild(canvas);
+
+  const sphereHost = document.createElement('div');
+  sphereHost.className = 'sphere-overlay-host';
+  stage.appendChild(sphereHost);
+
+  shell.appendChild(createMenuButton(showLanding));
+  shell.appendChild(stage);
+  app!.appendChild(shell);
+
+  const game = new Game(canvas, topology, {
+    toggleFullscreen: () => toggleFullscreen(shell),
+    onEscape: showLanding,
+  });
+  currentGame = game;
+
+  const sphereTextureCanvas = document.createElement('canvas');
+  sphereTextureCanvas.width = topology.worldWidth;
+  sphereTextureCanvas.height = topology.worldHeight;
+  const sphereWorldRenderer = new CanvasRenderer(sphereTextureCanvas, sphereTextureTopology);
+
+  const sphereBackOverlayCanvas = document.createElement('canvas');
+  sphereBackOverlayCanvas.width = topology.worldWidth;
+  sphereBackOverlayCanvas.height = topology.worldHeight;
+  const sphereBackOverlayRenderer = new CanvasRenderer(sphereBackOverlayCanvas, topology);
+  const sphereBackOverlayCtx = sphereBackOverlayCanvas.getContext('2d');
+  if (!sphereBackOverlayCtx) {
+    throw new Error('2D context unavailable for sphere back overlay canvas');
+  }
+  const safeSphereBackOverlayCtx = sphereBackOverlayCtx;
+
+  let sphereRenderer: SphereRenderer;
+  try {
+    sphereRenderer = createSphereRenderer(
+      sphereHost,
+      sphereTextureCanvas,
+      SPHERE_DISK_LAYOUT,
+      sphereBackOverlayCanvas,
+    );
+    currentSphereRenderer = sphereRenderer;
+  } catch (error) {
+    console.warn('WebGL unavailable. Sphere 3D renderer disabled.', error);
+    sphereHost.innerHTML =
+      '<div class="torus-fallback">WebGL unavailable in this environment.</div>';
+    currentSphereRenderer = null;
+    game.start();
+    return;
+  }
+
+  function resizeViews(): void {
+    sphereRenderer.resize(sphereHost.clientWidth, sphereHost.clientHeight);
+  }
+
+  resizeHandler = resizeViews;
+  window.addEventListener('resize', resizeViews);
+
+  game.start();
+
+  function sphereFrame(): void {
+    if (!currentGame) return;
+    const state = currentGame.getState();
+    sphereWorldRenderer.renderWorldOnly(state);
+    safeSphereBackOverlayCtx.clearRect(0, 0, sphereBackOverlayCanvas.width, sphereBackOverlayCanvas.height);
+    sphereBackOverlayRenderer.renderShiftedEntityGhosts(
+      state,
+      { x: 0, y: 0 },
+      0.55,
+      'source-over',
+    );
+    sphereRenderer.render();
+    rafId = requestAnimationFrame(sphereFrame);
+  }
+
+  requestAnimationFrame(() => {
+    resizeViews();
+    sphereFrame();
+  });
 }
 
 function startRectangleGame(): void {
