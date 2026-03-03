@@ -231,7 +231,7 @@ function startRectangleGame(): void {
     safeBackOverlayCtx.clearRect(0, 0, torusBackOverlayCanvas.width, torusBackOverlayCanvas.height);
     torusBackOverlayRenderer.renderShiftedEntityGhosts(
       state,
-      { x: torusTextureTopology.worldWidth * 0.5, y: 0 },
+      { x: 0, y: 0 },
       0.55,
       'source-over',
     );

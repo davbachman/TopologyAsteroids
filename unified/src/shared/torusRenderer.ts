@@ -98,7 +98,10 @@ export function createSharedTorusRenderer(
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.generateMipmaps = false;
+  texture.generateMipmaps = true;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.anisotropy = Math.max(1, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
 
   let backTexture: THREE.CanvasTexture | null = null;
   if (options.backOverlayCanvas) {
@@ -106,7 +109,10 @@ export function createSharedTorusRenderer(
     backTexture.wrapS = THREE.RepeatWrapping;
     backTexture.wrapT = THREE.RepeatWrapping;
     backTexture.colorSpace = THREE.SRGBColorSpace;
-    backTexture.generateMipmaps = false;
+    backTexture.generateMipmaps = true;
+    backTexture.minFilter = THREE.LinearMipmapLinearFilter;
+    backTexture.magFilter = THREE.LinearFilter;
+    backTexture.anisotropy = Math.max(1, Math.min(8, renderer.capabilities.getMaxAnisotropy()));
   }
 
   if (options.fixedTextureOffset) {

@@ -43,6 +43,20 @@ function seamNormalFromBeforeWrap(beforeWrapPos: Vec2): Vec2 | null {
   return { x: local.x / r, y: local.y / r };
 }
 
+function mirrorAcrossDiskDivider(v: Vec2): Vec2 {
+  return { x: -v.x, y: v.y };
+}
+
+function transformSeamVectorInPlace(v: Vec2, beforeWrapPos: Vec2): void {
+  const sourceNormal = seamNormalFromBeforeWrap(beforeWrapPos);
+  if (!sourceNormal) return;
+  // Mirror seam identification across the vertical divider between disks.
+  v.x = -v.x;
+  // Crossing the boundary also flips radial overflow to the interior of the paired disk.
+  const targetNormal = mirrorAcrossDiskDivider(sourceNormal);
+  reflectAcrossTangentInPlace(v, targetNormal);
+}
+
 export function createSphereTopology(): Topology {
   function wrapInPlace(point: Vec2): WrapResult {
     const origX = point.x;
@@ -57,11 +71,12 @@ export function createSphereTopology(): Topology {
     let dir = r > 1e-9 ? { x: local.x / r, y: local.y / r } : { x: 1, y: 0 };
     let passes = 0;
 
-    // Crossing the glued disk boundary flips disks and mirrors radial overflow.
+    // Crossing the glued disk boundary flips disks, mirrors left/right, and mirrors radial overflow.
     for (let i = 0; i < 4 && r > DISK_RADIUS; i += 1) {
       const overflow = r - DISK_RADIUS;
       diskIndex = (1 - diskIndex) as 0 | 1;
       r = DISK_RADIUS - overflow;
+      dir = mirrorAcrossDiskDivider(dir);
       if (r < 0) {
         r = -r;
         dir = { x: -dir.x, y: -dir.y };
@@ -80,16 +95,12 @@ export function createSphereTopology(): Topology {
   }
 
   function transformWrappedVelocityInPlace(vel: Vec2, beforeWrapPos: Vec2): void {
-    const normal = seamNormalFromBeforeWrap(beforeWrapPos);
-    if (!normal) return;
-    reflectAcrossTangentInPlace(vel, normal);
+    transformSeamVectorInPlace(vel, beforeWrapPos);
   }
 
   function transformWrappedAngle(angle: number, beforeWrapPos: Vec2): number {
-    const normal = seamNormalFromBeforeWrap(beforeWrapPos);
-    if (!normal) return angle;
     const heading = { x: Math.cos(angle), y: Math.sin(angle) };
-    reflectAcrossTangentInPlace(heading, normal);
+    transformSeamVectorInPlace(heading, beforeWrapPos);
     return Math.atan2(heading.y, heading.x);
   }
 
@@ -112,11 +123,12 @@ export function createSphereTopology(): Topology {
     if (DISK_RADIUS - r > radius) return [{ x: 0, y: 0 }];
 
     const dir = { x: local.x / r, y: local.y / r };
+    const mirrored = mirrorAcrossDiskDivider(dir);
     const ghostR = 2 * DISK_RADIUS - r;
     const other = DISKS[otherIndex].center;
     const ghostPoint = {
-      x: other.x + dir.x * ghostR,
-      y: other.y + dir.y * ghostR,
+      x: other.x + mirrored.x * ghostR,
+      y: other.y + mirrored.y * ghostR,
     };
     return [
       { x: 0, y: 0 },
@@ -181,9 +193,10 @@ export function createSphereTopology(): Topology {
     // Mark the paired disk boundaries (same boundary point on the other disk).
     ctx.lineWidth = 1.5;
     for (const disk of DISKS) {
-      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, -Math.PI / 2, 1);
-      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, Math.PI / 2, 1);
-      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, 0, 1);
+      const tangentDirection: 1 | -1 = disk.label === 'left' ? 1 : -1;
+      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, -Math.PI / 2, tangentDirection);
+      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, Math.PI / 2, tangentDirection);
+      drawSingleCircleTangentArrow(disk.center, DISK_RADIUS, 0, tangentDirection);
     }
 
     ctx.fillStyle = 'rgba(245,245,245,0.5)';

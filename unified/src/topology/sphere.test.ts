@@ -14,30 +14,34 @@ describe('sphere topology', () => {
     const p = { x: 300 + 250, y: 320 };
     const wrap = topo.wrapInPlace(p);
     expect(wrap.passes).toBeGreaterThan(0);
-    expect(p.x).toBeCloseTo(840 + 230, 6);
+    expect(p.x).toBeCloseTo(840 - 230, 6);
     expect(p.y).toBeCloseTo(320, 6);
   });
 
   it('reflects wrapped radial velocity while preserving tangential velocity', () => {
-    const radialVel = { x: 10, y: 0 };
-    topo.transformWrappedVelocityInPlace?.(radialVel, { x: 300 + 250, y: 320 }, { x: 0, y: 0 });
-    expect(radialVel.x).toBeCloseTo(-10, 6);
-    expect(radialVel.y).toBeCloseTo(0, 6);
+    const seam = { x: 300 + 250 / Math.SQRT2, y: 320 + 250 / Math.SQRT2 };
 
-    const tangentialVel = { x: 0, y: 7 };
-    topo.transformWrappedVelocityInPlace?.(tangentialVel, { x: 300 + 250, y: 320 }, { x: 0, y: 0 });
-    expect(tangentialVel.x).toBeCloseTo(0, 6);
-    expect(tangentialVel.y).toBeCloseTo(7, 6);
+    const radialVel = { x: 10 / Math.SQRT2, y: 10 / Math.SQRT2 };
+    topo.transformWrappedVelocityInPlace?.(radialVel, seam, { x: 0, y: 0 });
+    expect(radialVel.x).toBeCloseTo(10 / Math.SQRT2, 6);
+    expect(radialVel.y).toBeCloseTo(-10 / Math.SQRT2, 6);
+
+    const tangentialVel = { x: -7 / Math.SQRT2, y: 7 / Math.SQRT2 };
+    topo.transformWrappedVelocityInPlace?.(tangentialVel, seam, { x: 0, y: 0 });
+    expect(tangentialVel.x).toBeCloseTo(7 / Math.SQRT2, 6);
+    expect(tangentialVel.y).toBeCloseTo(7 / Math.SQRT2, 6);
   });
 
   it('reflects wrapped heading angle with the same seam rule', () => {
-    const east = topo.transformWrappedAngle?.(0, { x: 300 + 250, y: 320 }, { x: 0, y: 0 }) ?? 0;
-    expect(Math.cos(east)).toBeCloseTo(-1, 6);
-    expect(Math.sin(east)).toBeCloseTo(0, 6);
+    const seam = { x: 300 + 250 / Math.SQRT2, y: 320 + 250 / Math.SQRT2 };
 
-    const north = topo.transformWrappedAngle?.(Math.PI / 2, { x: 300 + 250, y: 320 }, { x: 0, y: 0 }) ?? 0;
-    expect(Math.cos(north)).toBeCloseTo(0, 6);
-    expect(Math.sin(north)).toBeCloseTo(1, 6);
+    const radial = topo.transformWrappedAngle?.(Math.PI / 4, seam, { x: 0, y: 0 }) ?? 0;
+    expect(Math.cos(radial)).toBeCloseTo(Math.SQRT1_2, 6);
+    expect(Math.sin(radial)).toBeCloseTo(-Math.SQRT1_2, 6);
+
+    const tangent = topo.transformWrappedAngle?.((3 * Math.PI) / 4, seam, { x: 0, y: 0 }) ?? 0;
+    expect(Math.cos(tangent)).toBeCloseTo(Math.SQRT1_2, 6);
+    expect(Math.sin(tangent)).toBeCloseTo(Math.SQRT1_2, 6);
   });
 
   it('emits a ghost copy offset near a seam', () => {
