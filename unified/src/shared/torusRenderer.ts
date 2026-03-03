@@ -28,6 +28,7 @@ interface SharedTorusRendererOptions {
   worldWidth?: number;
   worldHeight?: number;
   fixedTextureOffset?: { x: number; y: number };
+  backOverlayCanvas?: HTMLCanvasElement;
 }
 
 function wrapValue(value: number, extent: number): number {
@@ -99,11 +100,27 @@ export function createSharedTorusRenderer(
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.generateMipmaps = false;
 
+  let backTexture: THREE.CanvasTexture | null = null;
+  if (options.backOverlayCanvas) {
+    backTexture = new THREE.CanvasTexture(options.backOverlayCanvas);
+    backTexture.wrapS = THREE.RepeatWrapping;
+    backTexture.wrapT = THREE.RepeatWrapping;
+    backTexture.colorSpace = THREE.SRGBColorSpace;
+    backTexture.generateMipmaps = false;
+  }
+
   if (options.fixedTextureOffset) {
     texture.offset.x = options.fixedTextureOffset.x;
     texture.offset.y = options.fixedTextureOffset.y;
+    if (backTexture) {
+      backTexture.offset.x = options.fixedTextureOffset.x;
+      backTexture.offset.y = options.fixedTextureOffset.y;
+    }
   }
   texture.needsUpdate = true;
+  if (backTexture) {
+    backTexture.needsUpdate = true;
+  }
 
   const torusGeometry = new THREE.TorusGeometry(TORUS_MAJOR_RADIUS, TORUS_TUBE_RADIUS, 80, 180);
   const torusMaterial = new THREE.MeshStandardMaterial({
@@ -115,6 +132,25 @@ export function createSharedTorusRenderer(
 
   const torus = new THREE.Mesh(torusGeometry, torusMaterial);
   scene.add(torus);
+
+  let backOverlayMaterial: THREE.MeshBasicMaterial | null = null;
+  let backOverlayMesh: THREE.Mesh | null = null;
+  if (backTexture) {
+    backOverlayMaterial = new THREE.MeshBasicMaterial({
+      map: backTexture,
+      color: '#d9ecff',
+      transparent: true,
+      opacity: 0.4,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+      toneMapped: false,
+    });
+    backOverlayMesh = new THREE.Mesh(torusGeometry, backOverlayMaterial);
+    backOverlayMesh.scale.setScalar(1.001);
+    scene.add(backOverlayMesh);
+  }
 
   const ringGeometry = new THREE.TorusGeometry(TORUS_MAJOR_RADIUS, TORUS_TUBE_RADIUS + 0.005, 8, 120);
   const ringMaterial = new THREE.MeshBasicMaterial({
@@ -129,6 +165,9 @@ export function createSharedTorusRenderer(
   torus.rotation.x = FIXED_TORUS_ROTATION_X;
   torus.rotation.y = FIXED_TORUS_ROTATION_Y;
   wireRing.rotation.copy(torus.rotation);
+  if (backOverlayMesh) {
+    backOverlayMesh.rotation.copy(torus.rotation);
+  }
 
   host.appendChild(renderer.domElement);
 
@@ -160,16 +199,28 @@ export function createSharedTorusRenderer(
     ) {
       const lock = computeTorusTextureLock(shipX, shipY, options.worldWidth, options.worldHeight);
       texture.offset.set(lock.offsetX, lock.offsetY);
+      if (backTexture) {
+        backTexture.offset.set(lock.offsetX, lock.offsetY);
+      }
     }
 
     texture.needsUpdate = true;
+    if (backTexture) {
+      backTexture.needsUpdate = true;
+    }
     renderer.render(scene, camera);
   }
 
   function dispose(): void {
     texture.dispose();
+    if (backTexture) {
+      backTexture.dispose();
+    }
     torusGeometry.dispose();
     torusMaterial.dispose();
+    if (backOverlayMaterial) {
+      backOverlayMaterial.dispose();
+    }
     ringGeometry.dispose();
     ringMaterial.dispose();
     renderer.dispose();

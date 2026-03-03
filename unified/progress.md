@@ -43,3 +43,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Added faint back-side torus entity overlay in rectangle mode by rendering a shifted (half-width) ghost pass on the torus texture canvas with low alpha/screen blending.
 - Refactored `CanvasRenderer` entity drawing to support shifted ghost rendering without HUD impact; torus mode now calls `renderShiftedEntityGhosts` each frame after `renderWorldOnly`.
 - Validation: `unified` tests and build pass after the torus ghost overlay changes.
+- Increased visibility of torus back-side entities by moving them to a dedicated transparent back-overlay texture and rendering that texture on a translucent `BackSide` torus mesh (additive blend, depth-test off).
+- Rectangle mode now maintains two torus texture canvases: base world texture and back-side entities-only overlay texture.
+- Validation: `unified` tests/build pass and `TorusAsteroids` build remains green after shared renderer API extension.

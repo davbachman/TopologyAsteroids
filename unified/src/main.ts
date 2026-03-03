@@ -187,11 +187,20 @@ function startRectangleGame(): void {
   torusTextureCanvas.width = torusTextureTopology.worldWidth;
   torusTextureCanvas.height = torusTextureTopology.worldHeight;
   const torusWorldRenderer = new CanvasRenderer(torusTextureCanvas, torusTextureTopology);
+  const torusBackOverlayCanvas = document.createElement('canvas');
+  torusBackOverlayCanvas.width = torusTextureTopology.worldWidth;
+  torusBackOverlayCanvas.height = torusTextureTopology.worldHeight;
+  const torusBackOverlayRenderer = new CanvasRenderer(torusBackOverlayCanvas, torusTextureTopology);
+  const torusBackOverlayCtx = torusBackOverlayCanvas.getContext('2d');
+  if (!torusBackOverlayCtx) {
+    throw new Error('2D context unavailable for torus back overlay canvas');
+  }
+  const safeBackOverlayCtx = torusBackOverlayCtx;
 
   // Create 3D torus renderer
   let torusRenderer: TorusRenderer;
   try {
-    torusRenderer = createTorusRenderer(torusHost, torusTextureCanvas);
+    torusRenderer = createTorusRenderer(torusHost, torusTextureCanvas, torusBackOverlayCanvas);
     currentTorusRenderer = torusRenderer;
   } catch (error) {
     console.warn('WebGL unavailable. Torus 3D renderer disabled.', error);
@@ -219,11 +228,12 @@ function startRectangleGame(): void {
     if (!currentGame) return;
     const state = currentGame.getState();
     torusWorldRenderer.renderWorldOnly(state);
-    torusWorldRenderer.renderShiftedEntityGhosts(
+    safeBackOverlayCtx.clearRect(0, 0, torusBackOverlayCanvas.width, torusBackOverlayCanvas.height);
+    torusBackOverlayRenderer.renderShiftedEntityGhosts(
       state,
       { x: torusTextureTopology.worldWidth * 0.5, y: 0 },
-      0.18,
-      'screen',
+      0.55,
+      'source-over',
     );
     torusRenderer.render();
     rafId = requestAnimationFrame(torusFrame);

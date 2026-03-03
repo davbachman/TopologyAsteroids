@@ -9,11 +9,13 @@ export interface TorusRenderer {
 export function createTorusRenderer(
   host: HTMLElement,
   sourceCanvas: HTMLCanvasElement,
+  backOverlayCanvas?: HTMLCanvasElement,
 ): TorusRenderer {
   const shared = createSharedTorusRenderer(host, sourceCanvas, {
     // Position the center of the rectangle on the front-facing surface.
     // Rotate the torus vertical texture parameter by 180 degrees.
     fixedTextureOffset: { x: 0.25, y: 0.25 },
+    backOverlayCanvas,
   });
   return {
     resize: shared.resize,
