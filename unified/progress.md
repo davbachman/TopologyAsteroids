@@ -49,3 +49,6 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Tightened torus back-side visibility: replaced the back-overlay material with a custom shader that discards front-facing fragments (`gl_FrontFacing`) and renders only translucent back faces from the ghost texture.
 - This isolates the faint ghost entities specifically to the torus back side instead of relying on standard back-face material behavior.
 - Validation: `unified` tests/build and `TorusAsteroids` build all pass.
+- Fixed torus back-side ghost invisibility bug: ghost pass now sets explicit white stroke style/line width before drawing shifted entities.
+- Made back-face shader independent of source RGB (uses texture alpha as mask with constant tint), so visibility is no longer lost if canvas colors are dark.
+- Validation: `unified` tests/build and `TorusAsteroids` build all pass.

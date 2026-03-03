@@ -160,7 +160,7 @@ export function createSharedTorusRenderer(
           vec4 tex = texture2D(uMap, vUv);
           float alpha = tex.a * uOpacity;
           if (alpha <= 0.001) discard;
-          gl_FragColor = vec4(tex.rgb * uTint, alpha);
+          gl_FragColor = vec4(uTint, alpha);
         }
       `,
       transparent: true,

@@ -51,6 +51,8 @@ export class CanvasRenderer {
     ctx.clip();
     ctx.globalAlpha = alpha;
     ctx.globalCompositeOperation = composite;
+    ctx.lineWidth = 1.75;
+    ctx.strokeStyle = '#f5f5f5';
     this.drawEntitiesShifted(state, shift);
     ctx.restore();
   }
