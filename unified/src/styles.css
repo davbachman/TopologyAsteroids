@@ -175,9 +175,9 @@ html, body, #app {
 .sphere-overlay-host {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: clamp(148px, 18vw, 226px);
-  height: clamp(148px, 18vw, 226px);
+  top: 69%;
+  width: clamp(138px, 16vw, 196px);
+  height: clamp(138px, 16vw, 196px);
   transform: translate(-50%, -50%);
   border-radius: 50%;
   pointer-events: none;

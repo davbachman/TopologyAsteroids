@@ -13,7 +13,10 @@ function createHemisphereSampleShader() {
   return `
     vec2 sourceUvFromNormal(vec3 normalDir, vec2 sourceSize, vec2 leftCenter, vec2 rightCenter, float diskRadius) {
       vec2 center = normalDir.x < 0.0 ? leftCenter : rightCenter;
-      vec2 diskPoint = center + vec2(normalDir.z, -normalDir.y) * diskRadius;
+      // Left/right disk seam identification is mirrored across the vertical divider,
+      // so left hemisphere sampling flips horizontal disk coordinate.
+      float horizontalSign = normalDir.x < 0.0 ? -1.0 : 1.0;
+      vec2 diskPoint = center + vec2(horizontalSign * normalDir.z, -normalDir.y) * diskRadius;
       return clamp(diskPoint / sourceSize, vec2(0.0), vec2(1.0));
     }
   `;

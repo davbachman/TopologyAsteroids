@@ -19,9 +19,9 @@ export interface SphereDiskLayout {
 export const SPHERE_DISK_LAYOUT: SphereDiskLayout = {
   worldWidth: 1140,
   worldHeight: 640,
-  diskRadius: 240,
-  leftCenter: { x: 300, y: 320 },
-  rightCenter: { x: 840, y: 320 },
+  diskRadius: 220,
+  leftCenter: { x: 250, y: 320 },
+  rightCenter: { x: 890, y: 320 },
 };
 
 const DISK_RADIUS = SPHERE_DISK_LAYOUT.diskRadius;
