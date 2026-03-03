@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { SphereDiskLayout } from './sphere';
 
 const SPHERE_RADIUS = 1.24;
+const SPHERE_Y_ROTATION = 0.34;
 
 export interface SphereRenderer {
   resize: (width: number, height: number) => void;
@@ -12,11 +13,20 @@ export interface SphereRenderer {
 function createHemisphereSampleShader() {
   return `
     vec2 sourceUvFromNormal(vec3 normalDir, vec2 sourceSize, vec2 leftCenter, vec2 rightCenter, float diskRadius) {
-      vec2 center = normalDir.x < 0.0 ? leftCenter : rightCenter;
-      // Left/right disk seam identification is mirrored across the vertical divider,
-      // so left hemisphere sampling flips horizontal disk coordinate.
-      float horizontalSign = normalDir.x < 0.0 ? -1.0 : 1.0;
-      vec2 diskPoint = center + vec2(horizontalSign * normalDir.z, -normalDir.y) * diskRadius;
+      float hemisphereSign = normalDir.x < 0.0 ? -1.0 : 1.0;
+      vec2 center = hemisphereSign < 0.0 ? leftCenter : rightCenter;
+
+      // Map hemisphere -> disk using an equal-area style projection to avoid seam elongation.
+      // The seam-identification points (left edge of right disk, right edge of left disk)
+      // are mapped to the visual centerline of the sphere.
+      float xLocal = abs(normalDir.x);
+      float denom = sqrt(max(1e-6, 1.0 + xLocal));
+      float seamU = normalDir.z / denom;
+      float seamV = normalDir.y / denom;
+      float localX = -hemisphereSign * seamU;
+      float localY = -seamV;
+
+      vec2 diskPoint = center + vec2(localX, localY) * diskRadius;
       return clamp(diskPoint / sourceSize, vec2(0.0), vec2(1.0));
     }
   `;
@@ -106,8 +116,11 @@ export function createSphereRenderer(
     `,
   });
 
+  const mappingGroup = new THREE.Group();
+  scene.add(mappingGroup);
+
   const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
-  scene.add(sphereMesh);
+  mappingGroup.add(sphereMesh);
 
   let backMaterial: THREE.ShaderMaterial | null = null;
   let backMesh: THREE.Mesh | null = null;
@@ -159,7 +172,7 @@ export function createSphereRenderer(
     });
     backMesh = new THREE.Mesh(sphereGeometry, backMaterial);
     backMesh.renderOrder = 1;
-    scene.add(backMesh);
+    mappingGroup.add(backMesh);
   }
 
   const dividerPoints: THREE.Vector3[] = [];
@@ -171,13 +184,50 @@ export function createSphereRenderer(
     );
   }
   const dividerGeometry = new THREE.BufferGeometry().setFromPoints(dividerPoints);
-  const dividerMaterial = new THREE.LineBasicMaterial({
+  const dividerFrontMaterial = new THREE.LineBasicMaterial({
     color: '#eef4ff',
     transparent: true,
     opacity: 0.92,
+    depthWrite: false,
   });
-  const dividerLoop = new THREE.LineLoop(dividerGeometry, dividerMaterial);
-  scene.add(dividerLoop);
+  dividerFrontMaterial.depthFunc = THREE.LessEqualDepth;
+  const dividerBackMaterial = new THREE.LineBasicMaterial({
+    color: '#d5e4ff',
+    transparent: true,
+    opacity: 0.26,
+    depthWrite: false,
+  });
+  dividerBackMaterial.depthFunc = THREE.GreaterDepth;
+  const dividerFrontLoop = new THREE.LineLoop(dividerGeometry, dividerFrontMaterial);
+  dividerFrontLoop.renderOrder = 2;
+  const dividerBackLoop = new THREE.LineLoop(dividerGeometry, dividerBackMaterial);
+  dividerBackLoop.renderOrder = 3;
+  mappingGroup.add(dividerFrontLoop);
+  mappingGroup.add(dividerBackLoop);
+
+  // Arrowhead on the divider curve, pointing downward along the front-facing arc.
+  const arrowTip = new THREE.Vector3(0, 0, SPHERE_RADIUS * 1.006);
+  const arrowLength = SPHERE_RADIUS * 0.17;
+  const arrowWidth = SPHERE_RADIUS * 0.12;
+  const arrowLeft = new THREE.Vector3(-arrowWidth * 0.5, arrowLength, SPHERE_RADIUS * 1.006);
+  const arrowRight = new THREE.Vector3(arrowWidth * 0.5, arrowLength, SPHERE_RADIUS * 1.006);
+  const arrowGeometry = new THREE.BufferGeometry().setFromPoints([
+    arrowTip,
+    arrowLeft,
+    arrowTip,
+    arrowRight,
+  ]);
+  const arrowMaterial = new THREE.LineBasicMaterial({
+    color: '#eef4ff',
+    transparent: true,
+    opacity: 0.94,
+    depthWrite: false,
+  });
+  const arrowHead = new THREE.LineSegments(arrowGeometry, arrowMaterial);
+  arrowHead.renderOrder = 4;
+  mappingGroup.add(arrowHead);
+
+  mappingGroup.rotation.y = SPHERE_Y_ROTATION;
 
   host.appendChild(renderer.domElement);
 
@@ -217,7 +267,10 @@ export function createSphereRenderer(
       backMaterial.dispose();
     }
     dividerGeometry.dispose();
-    dividerMaterial.dispose();
+    dividerFrontMaterial.dispose();
+    dividerBackMaterial.dispose();
+    arrowGeometry.dispose();
+    arrowMaterial.dispose();
     renderer.dispose();
   }
 

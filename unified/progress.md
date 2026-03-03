@@ -69,3 +69,14 @@ Original prompt: Refactor and unify the code more across the TopologyAsteroids r
 - Center 3D sphere overlay moved lower (`top: 69%`) and slightly reduced in size so it no longer overlaps either disk.
 - Hemisphere sampling fix: left hemisphere now flips horizontal local disk coordinate in 3D mapping shader, matching the sphere topology seam rule (left side of right disk identifies with right side of left disk), making seam crossings continuous across right/left hemispheres.
 - Updated sphere tests to use exported `SPHERE_DISK_LAYOUT` constants instead of hard-coded coordinates; validation: `unified` tests/build and `TorusAsteroids` build pass; Playwright checks saved at `unified/output/sphere-layout-separated-v1.png`, `unified/output/sphere-seam-mapping-v1.png`, `unified/output/sphere-seam-mapping-controlled-paused.png`.
+- Further spherical layout pass: increased disk separation again (`leftCenter = (230,320)`, `rightCenter = (910,320)`), enlarged the center sphere slightly, and moved it lower (`top: 73%`) with no disk overlap.
+- Styled the ring region between the 3D sphere and blue border using the torus panel background color (`#f3eee2`) to match torus-view aesthetics.
+- Replaced sphere hemisphere sampling with a Lambert-style inverse projection (`u,v` scaled by `sqrt(1 + |x|)`) to reduce seam-adjacent stretching artifacts.
+- Confirmed seam-center identification target: controlled asteroids placed at right edge of left disk and left edge of right disk now map to the visual centerline/front area of the 3D sphere without extreme elongation (`unified/output/sphere-seam-center-two-asteroids-v2.png`).
+- Validation: `unified` tests/build and `TorusAsteroids` build pass; visual captures at `unified/output/sphere-layout-lower-larger-v2.png`, `unified/output/sphere-mapping-gameplay-v2.png`, and `unified/output/sphere-seam-center-two-asteroids-v2.png`.
+- Sphere overlay presentation update: moved the 3D sphere lower again (`top: 78%`) and increased its size (`clamp(168px, 19vw, 244px)`).
+- Divider curve enhancement on 3D sphere:
+  - rotated the mapped sphere slightly around vertical axis (`SPHERE_Y_ROTATION = 0.34`) so the dividing great circle presents as an ellipse in view.
+  - rendered divider in two passes (front bright, back faint using `depthFunc = GreaterDepth`) so rear half of the ellipse remains visible but subdued.
+  - added a downward-pointing arrowhead on the front divider arc.
+- Validation: `unified` tests/build and `TorusAsteroids` build pass; visual check saved at `unified/output/sphere-layout-rotated-divider-v3-start.png`.

@@ -20,8 +20,8 @@ export const SPHERE_DISK_LAYOUT: SphereDiskLayout = {
   worldWidth: 1140,
   worldHeight: 640,
   diskRadius: 220,
-  leftCenter: { x: 250, y: 320 },
-  rightCenter: { x: 890, y: 320 },
+  leftCenter: { x: 230, y: 320 },
+  rightCenter: { x: 910, y: 320 },
 };
 
 const DISK_RADIUS = SPHERE_DISK_LAYOUT.diskRadius;
