@@ -11,41 +11,51 @@ export function createLandingPage(root: HTMLElement, options: LandingPageOptions
     <div class="landing-content">
       <h1 class="landing-title">TOPOLOGY<br>ASTEROIDS</h1>
       <p class="landing-subtitle">Choose your universe</p>
-      <div class="landing-options">
-        <button class="landing-option" data-topology="rectangle">
-          <span class="option-number">1</span>
-          <span class="option-text">Toroidal universe on a rectangle<br><span class="option-detail">(standard view), with 3D torus visualization</span></span>
-        </button>
-        <button class="landing-option" data-topology="annulus">
-          <span class="option-number">2</span>
-          <span class="option-text">Toroidal universe on an<br><span class="option-detail">annular ring</span></span>
-        </button>
-        <button class="landing-option" data-topology="octagon">
-          <span class="option-number">3</span>
-          <span class="option-text">Genus two universe on an<br><span class="option-detail">octagon</span></span>
-        </button>
-        <button class="landing-option" data-topology="sphere">
-          <span class="option-number">4</span>
-          <span class="option-text">Spherical universe on two<br><span class="option-detail">glued disks</span></span>
-        </button>
-        <button class="landing-option" data-topology="handle">
-          <span class="option-number">5</span>
-          <span class="option-text">Genus two on a rectangle<br><span class="option-detail">with a reflected handle seam</span></span>
-        </button>
-        <button class="landing-option" data-topology="klein">
-          <span class="option-number">6</span>
-          <span class="option-text">Klein Bottle universe on a<br><span class="option-detail">twisted rectangle</span></span>
-        </button>
-        <button class="landing-option" data-topology="projective">
-          <span class="option-number">7</span>
-          <span class="option-text">Projective Plane universe in a<br><span class="option-detail">disk with antipodal boundary seams</span></span>
-        </button>
+      <div class="landing-columns">
+        <section class="landing-column">
+          <h2 class="landing-column-title">Orientable Universes</h2>
+          <div class="landing-options">
+            <button class="landing-option" data-topology="sphere">
+              <span class="option-number">1</span>
+              <span class="option-text">Spherical Universe w/3D view</span>
+            </button>
+            <button class="landing-option" data-topology="rectangle">
+              <span class="option-number">2</span>
+              <span class="option-text">Toroidal Universe w/ 3D view</span>
+            </button>
+            <button class="landing-option" data-topology="annulus">
+              <span class="option-number">3</span>
+              <span class="option-text">Toroidal Universe on an annulus</span>
+            </button>
+            <button class="landing-option" data-topology="octagon">
+              <span class="option-number">4</span>
+              <span class="option-text">Genus two Universe on an octagon</span>
+            </button>
+            <button class="landing-option" data-topology="handle">
+              <span class="option-number">5</span>
+              <span class="option-text">Genus two Universe on a rectangle with handle.</span>
+            </button>
+          </div>
+        </section>
+        <section class="landing-column">
+          <h2 class="landing-column-title">Non-orientable Universes</h2>
+          <div class="landing-options">
+            <button class="landing-option" data-topology="projective">
+              <span class="option-number">6</span>
+              <span class="option-text">Projective Plane Universe</span>
+            </button>
+            <button class="landing-option" data-topology="klein">
+              <span class="option-number">7</span>
+              <span class="option-text">Klein Bottle Universe</span>
+            </button>
+          </div>
+        </section>
       </div>
       <div class="landing-controls">
         <p>ARROWS / WASD to move &nbsp; SPACE to fire &nbsp; SHIFT hyperspace</p>
         <p>P pause &nbsp; F fullscreen &nbsp; M mute &nbsp; ESC menu</p>
-        <p>By David Bachman with GPT 5.3 codex</p>
       </div>
+      <p class="landing-tagline">By David Bachman and GPT 5.3 Codex</p>
     </div>
   `;
 
@@ -61,25 +71,25 @@ export function createLandingPage(root: HTMLElement, options: LandingPageOptions
   function handleKeydown(e: KeyboardEvent): void {
     switch (e.key) {
       case '1':
-        options.onSelect('rectangle');
+        options.onSelect('sphere');
         break;
       case '2':
-        options.onSelect('annulus');
+        options.onSelect('rectangle');
         break;
       case '3':
-        options.onSelect('octagon');
+        options.onSelect('annulus');
         break;
       case '4':
-        options.onSelect('sphere');
+        options.onSelect('octagon');
         break;
       case '5':
         options.onSelect('handle');
         break;
       case '6':
-        options.onSelect('klein');
+        options.onSelect('projective');
         break;
       case '7':
-        options.onSelect('projective');
+        options.onSelect('klein');
         break;
     }
   }
