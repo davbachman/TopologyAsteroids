@@ -3,6 +3,7 @@ import type { SphereDiskLayout } from './sphere';
 
 const SPHERE_RADIUS = 1.24;
 const SPHERE_Y_ROTATION = 0.34;
+const SPHERE_SEAM_BLEND_WIDTH = 0.1;
 
 export interface SphereRenderer {
   resize: (width: number, height: number) => void;
@@ -12,15 +13,23 @@ export interface SphereRenderer {
 
 function createHemisphereSampleShader() {
   return `
-    vec2 sourceUvFromNormal(vec3 normalDir, vec2 sourceSize, vec2 leftCenter, vec2 rightCenter, float diskRadius) {
-      float hemisphereSign = normalDir.x < 0.0 ? -1.0 : 1.0;
+    vec2 sourceUvFromHemisphereNormal(
+      vec3 normalDir,
+      vec2 sourceSize,
+      vec2 leftCenter,
+      vec2 rightCenter,
+      float diskRadius,
+      float hemisphereSign
+    ) {
       vec2 center = hemisphereSign < 0.0 ? leftCenter : rightCenter;
 
-      // Map hemisphere -> disk using an equal-area style projection to avoid seam elongation.
+      // Map hemisphere -> disk with a conformal stereographic-style chart
+      // (using +/-X as poles). This reduces seam bending artifacts, especially
+      // near the north/south portions of the hemisphere divider.
       // The seam-identification points (left edge of right disk, right edge of left disk)
       // are mapped to the visual centerline of the sphere.
       float xLocal = abs(normalDir.x);
-      float denom = sqrt(max(1e-6, 1.0 + xLocal));
+      float denom = max(1e-6, 1.0 + xLocal);
       float seamU = normalDir.z / denom;
       float seamV = normalDir.y / denom;
       float localX = -hemisphereSign * seamU;
@@ -28,6 +37,11 @@ function createHemisphereSampleShader() {
 
       vec2 diskPoint = center + vec2(localX, localY) * diskRadius;
       return clamp(diskPoint / sourceSize, vec2(0.0), vec2(1.0));
+    }
+
+    vec2 sourceUvFromNormal(vec3 normalDir, vec2 sourceSize, vec2 leftCenter, vec2 rightCenter, float diskRadius) {
+      float hemisphereSign = normalDir.x < 0.0 ? -1.0 : 1.0;
+      return sourceUvFromHemisphereNormal(normalDir, sourceSize, leftCenter, rightCenter, diskRadius, hemisphereSign);
     }
   `;
 }
@@ -89,6 +103,7 @@ export function createSphereRenderer(
       uLeftCenter: { value: new THREE.Vector2(layout.leftCenter.x, layout.leftCenter.y) },
       uRightCenter: { value: new THREE.Vector2(layout.rightCenter.x, layout.rightCenter.y) },
       uDiskRadius: { value: layout.diskRadius },
+      uSeamBlendWidth: { value: SPHERE_SEAM_BLEND_WIDTH },
     },
     vertexShader: `
       varying vec3 vObjNormal;
@@ -106,13 +121,18 @@ export function createSphereRenderer(
       uniform vec2 uLeftCenter;
       uniform vec2 uRightCenter;
       uniform float uDiskRadius;
+      uniform float uSeamBlendWidth;
       varying vec3 vObjNormal;
       varying vec3 vWorldNormal;
       ${createHemisphereSampleShader()}
       void main() {
         vec3 n = normalize(vObjNormal);
-        vec2 uv = sourceUvFromNormal(n, uSourceSize, uLeftCenter, uRightCenter, uDiskRadius);
-        vec4 tex = texture2D(uMap, uv);
+        vec2 uvLeft = sourceUvFromHemisphereNormal(n, uSourceSize, uLeftCenter, uRightCenter, uDiskRadius, -1.0);
+        vec2 uvRight = sourceUvFromHemisphereNormal(n, uSourceSize, uLeftCenter, uRightCenter, uDiskRadius, 1.0);
+        float seamBlend = smoothstep(-uSeamBlendWidth, uSeamBlendWidth, n.x);
+        vec4 texLeft = texture2D(uMap, uvLeft);
+        vec4 texRight = texture2D(uMap, uvRight);
+        vec4 tex = mix(texLeft, texRight, seamBlend);
         vec3 lightDir = normalize(vec3(0.65, 0.84, 1.0));
         float diffuse = 0.44 + 0.56 * max(dot(normalize(vWorldNormal), lightDir), 0.0);
         gl_FragColor = vec4(tex.rgb * diffuse, tex.a);
@@ -136,6 +156,7 @@ export function createSphereRenderer(
         uLeftCenter: { value: new THREE.Vector2(layout.leftCenter.x, layout.leftCenter.y) },
         uRightCenter: { value: new THREE.Vector2(layout.rightCenter.x, layout.rightCenter.y) },
         uDiskRadius: { value: layout.diskRadius },
+        uSeamBlendWidth: { value: SPHERE_SEAM_BLEND_WIDTH },
         uTint: { value: new THREE.Color('#d8ebff') },
         uOpacity: { value: 0.34 },
       },
@@ -153,14 +174,19 @@ export function createSphereRenderer(
         uniform vec2 uLeftCenter;
         uniform vec2 uRightCenter;
         uniform float uDiskRadius;
+        uniform float uSeamBlendWidth;
         uniform vec3 uTint;
         uniform float uOpacity;
         varying vec3 vObjNormal;
         ${createHemisphereSampleShader()}
         void main() {
           vec3 n = normalize(vObjNormal);
-          vec2 uv = sourceUvFromNormal(n, uSourceSize, uLeftCenter, uRightCenter, uDiskRadius);
-          vec4 tex = texture2D(uMap, uv);
+          vec2 uvLeft = sourceUvFromHemisphereNormal(n, uSourceSize, uLeftCenter, uRightCenter, uDiskRadius, -1.0);
+          vec2 uvRight = sourceUvFromHemisphereNormal(n, uSourceSize, uLeftCenter, uRightCenter, uDiskRadius, 1.0);
+          float seamBlend = smoothstep(-uSeamBlendWidth, uSeamBlendWidth, n.x);
+          vec4 texLeft = texture2D(uMap, uvLeft);
+          vec4 texRight = texture2D(uMap, uvRight);
+          vec4 tex = mix(texLeft, texRight, seamBlend);
           float mask = max(max(tex.r, tex.g), tex.b) * tex.a;
           if (mask <= 0.01) discard;
           gl_FragColor = vec4(uTint, mask * uOpacity);
