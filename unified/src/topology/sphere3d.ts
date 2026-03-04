@@ -59,6 +59,9 @@ export function createSphereRenderer(
   const baseTexture = new THREE.CanvasTexture(sourceCanvas);
   baseTexture.wrapS = THREE.ClampToEdgeWrapping;
   baseTexture.wrapT = THREE.ClampToEdgeWrapping;
+  // We sample with explicit UVs derived from disk-space canvas coordinates.
+  // Keep texture Y unflipped so canvas Y-down maps directly.
+  baseTexture.flipY = false;
   baseTexture.colorSpace = THREE.SRGBColorSpace;
   baseTexture.generateMipmaps = true;
   baseTexture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -70,6 +73,7 @@ export function createSphereRenderer(
     backTexture = new THREE.CanvasTexture(backOverlayCanvas);
     backTexture.wrapS = THREE.ClampToEdgeWrapping;
     backTexture.wrapT = THREE.ClampToEdgeWrapping;
+    backTexture.flipY = false;
     backTexture.colorSpace = THREE.SRGBColorSpace;
     backTexture.generateMipmaps = true;
     backTexture.minFilter = THREE.LinearMipmapLinearFilter;
