@@ -150,29 +150,32 @@ function startSphereGame(): void {
     drawBoundary: () => {},
   };
 
-  const shell = document.createElement('div');
-  shell.className = 'game-shell';
-  const canvas = document.createElement('canvas');
-  canvas.width = topology.worldWidth;
-  canvas.height = topology.worldHeight;
-  canvas.style.maxWidth = '94vw';
-  canvas.style.maxHeight = 'calc(100vh - 48px)';
-  canvas.style.width = 'auto';
-  canvas.style.height = 'auto';
-
-  const stage = document.createElement('div');
-  stage.className = 'game-stage sphere-stage';
-  stage.appendChild(canvas);
-
-  const sphereHost = document.createElement('div');
-  sphereHost.className = 'sphere-overlay-host';
-  stage.appendChild(sphereHost);
-
+  const shell = document.createElement('main');
+  shell.className = 'split-shell';
+  shell.id = 'shell';
+  shell.innerHTML = `
+    <section class="split-layout" id="split-layout">
+      <article class="pane" id="sphere-pane">
+        <header class="pane-header">Sphere Mapping View</header>
+        <div class="pane-body">
+          <div class="torus-host" id="sphere-host"></div>
+        </div>
+      </article>
+      <article class="pane" id="game-pane">
+        <header class="pane-header">Asteroids Field</header>
+        <div class="pane-body">
+          <canvas id="sphere-game-canvas" aria-label="Asteroids gameplay canvas"></canvas>
+        </div>
+      </article>
+    </section>
+  `;
   shell.appendChild(createMenuButton(showLanding));
-  shell.appendChild(stage);
   app!.appendChild(shell);
 
-  const game = new Game(canvas, topology, {
+  const sphereHost = shell.querySelector<HTMLDivElement>('#sphere-host')!;
+  const gameCanvas = shell.querySelector<HTMLCanvasElement>('#sphere-game-canvas')!;
+
+  const game = new Game(gameCanvas, topology, {
     toggleFullscreen: () => toggleFullscreen(shell),
     onEscape: showLanding,
   });
@@ -212,7 +215,9 @@ function startSphereGame(): void {
   }
 
   function resizeViews(): void {
-    sphereRenderer.resize(sphereHost.clientWidth, sphereHost.clientHeight);
+    const sphereBody = shell.querySelector<HTMLElement>('#sphere-pane .pane-body');
+    if (!sphereBody) return;
+    sphereRenderer.resize(sphereBody.clientWidth, sphereBody.clientHeight);
   }
 
   resizeHandler = resizeViews;

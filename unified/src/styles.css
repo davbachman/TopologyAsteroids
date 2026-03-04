@@ -202,31 +202,6 @@ html, body, #app {
   display: block;
 }
 
-.sphere-stage {
-  isolation: isolate;
-}
-
-.sphere-overlay-host {
-  position: absolute;
-  left: 50%;
-  top: 78%;
-  width: clamp(168px, 19vw, 244px);
-  height: clamp(168px, 19vw, 244px);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  pointer-events: none;
-  background: #f3eee2;
-  border: 1px solid rgba(148, 184, 235, 0.52);
-  box-shadow: 0 0 26px rgba(90, 130, 191, 0.22);
-  overflow: hidden;
-}
-
-.sphere-overlay-host canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
 /* ── Split Layout (torus rectangle mode) ── */
 
 .split-shell {
@@ -308,6 +283,10 @@ html, body, #app {
 }
 
 #torus-pane .pane-body {
+  background: #f3eee2;
+}
+
+#sphere-pane .pane-body {
   background: #f3eee2;
 }
 
