@@ -151,7 +151,7 @@ function startSphereGame(): void {
   };
 
   const shell = document.createElement('main');
-  shell.className = 'split-shell';
+  shell.className = 'split-shell sphere-shell';
   shell.id = 'shell';
   shell.innerHTML = `
     <section class="split-layout" id="split-layout">
