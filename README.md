@@ -4,4 +4,6 @@
 
 A browser-based Asteroids collection featuring multiple topological playfields, including torus, annulus, spherical, genus-two, Klein Bottle, and Projective Plane variants.
 
-By David Bachman and GPT 5.3 Codex
+Created by David Bachman with GPT-5 Codex
+
+To learn more about David Bachman and his work visit https://pzacad.pitzer.edu/~dbachman/ and subscribe to his AI substack *Entropy Bonus* at profbachman.substack.com
